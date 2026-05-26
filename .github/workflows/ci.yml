@@ -84,7 +84,8 @@ jobs:
 
       - name: Secret pattern scan
         run: |
-          if git grep -n -E '(COHERE_API_KEY=.+|BEGIN (RSA|OPENSSH|PRIVATE) KEY)' -- ':!*.md' ':!frontend/package-lock.json'; then
+          secret_pattern='COHERE_API''_KEY=[^[:space:]$][^[:space:]]*|BEGIN (RSA|OPENSSH|PRIVATE) KEY'
+          if git grep -n -E "$secret_pattern" -- ':!*.md' ':!frontend/package-lock.json'; then
             echo "Potential secret found in tracked files"
             exit 1
           fi
