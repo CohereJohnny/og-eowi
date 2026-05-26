@@ -14,7 +14,7 @@ The goal is to keep the demo merge-ready without slowing down local iteration on
 - FR-2: Local hooks must catch formatting issues, syntax issues, obvious secrets, large files, and merge conflicts.
 - FR-3: Pull-request CI must validate backend Python, frontend TypeScript/Next.js, Docker Compose configuration, and the mock-corpus eval harness.
 - FR-4: Local environment files and credentials must not be committed.
-- FR-5: Dependency update PRs must be opened automatically for npm, pip, and GitHub Actions.
+- FR-5: Dependency update PRs must be opened automatically for pnpm, uv, and GitHub Actions.
 
 ### Non-Functional Requirements
 
@@ -76,8 +76,8 @@ CI must run on:
 
 Automated dependency update PRs must be opened weekly for:
 
-- `npm` dependencies in `frontend/`
-- `pip` dependencies in `backend/`
+- `pnpm` dependencies in `frontend/`
+- `uv` dependencies in the Python workspace
 - GitHub Actions in `.github/workflows/`
 
 ## Branch Protection

@@ -27,19 +27,15 @@ The backend is published on `http://localhost:8001` for direct debugging. The fr
 Backend:
 
 ```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8001
+uv sync --all-groups
+uv run uvicorn app.main:app --app-dir backend --reload --port 8001
 ```
 
 Frontend:
 
 ```bash
-cd frontend
-npm install
-npm run dev -- -p 3001
+pnpm --dir frontend install
+pnpm --dir frontend run dev -- -p 3001
 ```
 
 ## Data Flow

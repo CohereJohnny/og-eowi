@@ -22,3 +22,11 @@
 ## Progress
 
 Sprint 1 implementation was completed as part of the initial demo build. The real Databricks export path is implemented as a script, while a curated mock corpus keeps downstream retrieval, agent, UI, and eval work runnable without requiring the external volume during local validation.
+
+## Sprint Review
+
+Demo Readiness: The project foundation is runnable with FastAPI, Next.js, Docker Compose, environment templates, data acquisition scaffolding, parsing scripts, and a mock corpus that unblocks downstream demo flows.
+
+Gaps/Issues: The Databricks export path remains a local script scaffold until the live Volve export is connected. The mock corpus is intentionally narrow and should be expanded by later sprint indexing work.
+
+Next Steps: Carry forward to Sprint 2 with structured loading, chunk enrichment, embeddings, hybrid retrieval, and retrieval smoke testing.
