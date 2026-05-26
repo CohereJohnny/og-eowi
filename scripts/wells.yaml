@@ -1,0 +1,32 @@
+primary_well: 15/9-F-11
+
+v1_wells:
+  - well_id: 15/9-F-11
+    aliases:
+      - F-11
+      - 15/9-F-11 A
+      - 15/9-F-11 B
+      - 15/9-F-11 T2
+    role: primary
+  - well_id: 15/9-F-1
+    aliases: [F-1]
+    role: offset
+  - well_id: 15/9-F-4
+    aliases: [F-4]
+    role: offset
+  - well_id: 15/9-F-7
+    aliases: [F-7]
+    role: offset
+  - well_id: 15/9-F-10
+    aliases: [F-10]
+    role: offset
+  - well_id: 15/9-F-14
+    aliases: [F-14]
+    role: offset
+
+source_folders:
+  reports: Reports
+  well_logs: Well_Logs
+  technical: Well_technical_data
+
+databricks_volume: /Volumes/equinor_asa_volve_data_village/public/volve

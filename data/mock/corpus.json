@@ -1,0 +1,176 @@
+{
+  "wells": [
+    {
+      "well_id": "15/9-F-11",
+      "well_name": "15/9-F-11",
+      "field": "Volve",
+      "operator": "Equinor",
+      "spud_date": "2008-03-16",
+      "td_date": "2008-05-02",
+      "td_md_m": 3620.0,
+      "td_tvd_m": 3058.0,
+      "well_purpose": "production",
+      "well_status": "completed",
+      "parent_well_id": null,
+      "aliases": ["F-11", "15/9-F-11 A", "15/9-F-11 B", "15/9-F-11 T2"]
+    },
+    {
+      "well_id": "15/9-F-14",
+      "well_name": "15/9-F-14",
+      "field": "Volve",
+      "operator": "Equinor",
+      "spud_date": "2008-09-10",
+      "td_date": "2008-10-12",
+      "td_md_m": 3490.0,
+      "td_tvd_m": 3010.0,
+      "well_purpose": "production",
+      "well_status": "completed",
+      "parent_well_id": null,
+      "aliases": ["F-14"]
+    }
+  ],
+  "formation_tops": [
+    {
+      "well_id": "15/9-F-11",
+      "formation_name": "Hugin",
+      "top_md_m": 2874.0,
+      "top_tvd_m": 2765.0,
+      "base_md_m": 3188.0,
+      "lithology": "sandstone",
+      "source_doc_id": "F11_FORMATION_TOPS"
+    },
+    {
+      "well_id": "15/9-F-11",
+      "formation_name": "Heather",
+      "top_md_m": 2598.0,
+      "top_tvd_m": 2520.0,
+      "base_md_m": 2874.0,
+      "lithology": "shale",
+      "source_doc_id": "F11_FORMATION_TOPS"
+    },
+    {
+      "well_id": "15/9-F-14",
+      "formation_name": "Hugin",
+      "top_md_m": 2810.0,
+      "top_tvd_m": 2722.0,
+      "base_md_m": 3155.0,
+      "lithology": "sandstone",
+      "source_doc_id": "F14_FORMATION_TOPS"
+    }
+  ],
+  "documents": [
+    {
+      "doc_id": "F11_DDR_20080415",
+      "well_id": "15/9-F-11",
+      "doc_type": "DDR",
+      "title": "15/9-F-11 Daily Drilling Report 2008-04-15",
+      "doc_date": "2008-04-15",
+      "source_path": "mock/f11_ddr_20080415.pdf",
+      "page_count": 4,
+      "extraction_method": "mock",
+      "quality_flag": "good",
+      "demo_critical": true
+    },
+    {
+      "doc_id": "F11_EOWR",
+      "well_id": "15/9-F-11",
+      "doc_type": "EOWR",
+      "title": "15/9-F-11 End of Well Report",
+      "doc_date": "2008-05-15",
+      "source_path": "mock/f11_eowr.pdf",
+      "page_count": 18,
+      "extraction_method": "mock",
+      "quality_flag": "good",
+      "demo_critical": true
+    },
+    {
+      "doc_id": "F14_EOWR",
+      "well_id": "15/9-F-14",
+      "doc_type": "EOWR",
+      "title": "15/9-F-14 End of Well Report",
+      "doc_date": "2008-10-20",
+      "source_path": "mock/f14_eowr.pdf",
+      "page_count": 16,
+      "extraction_method": "mock",
+      "quality_flag": "good",
+      "demo_critical": false
+    }
+  ],
+  "chunks": [
+    {
+      "chunk_id": "F11_DDR_20080415::problems_encountered::001",
+      "doc_id": "F11_DDR_20080415",
+      "well_id": "15/9-F-11",
+      "doc_type": "DDR",
+      "chunk_seq": 1,
+      "page_start": 2,
+      "page_end": 2,
+      "section_path": "DDR 2008-04-15 > Problems Encountered",
+      "depth_md_start_m": 2940.0,
+      "depth_md_end_m": 2975.0,
+      "chunk_text": "During drilling through the Hugin Formation from 2940 m MD to 2975 m MD the BHA showed repeated overpull and pack-off symptoms. The drillstring became differentially stuck after a connection and required working the pipe, circulation at increased flow rate, and a spotting pill before movement was regained. The event caused 11.5 hours of non-productive time.",
+      "bbox": [96, 210, 520, 318],
+      "token_count": 68
+    },
+    {
+      "chunk_id": "F11_DDR_20080416::mud_properties::001",
+      "doc_id": "F11_DDR_20080415",
+      "well_id": "15/9-F-11",
+      "doc_type": "DDR",
+      "chunk_seq": 2,
+      "page_start": 3,
+      "page_end": 3,
+      "section_path": "DDR 2008-04-16 > Mud Properties",
+      "depth_md_start_m": 2960.0,
+      "depth_md_end_m": 3020.0,
+      "chunk_text": "Mud weight was increased from 1.32 SG to 1.38 SG while drilling the reservoir interval. Equivalent circulating density approached the modeled fracture margin during high-flow cleanout. The report recommends tighter ECD management and lower connection time in the Hugin sands.",
+      "bbox": [88, 176, 526, 286],
+      "token_count": 50
+    },
+    {
+      "chunk_id": "F11_EOWR::lessons_learned::001",
+      "doc_id": "F11_EOWR",
+      "well_id": "15/9-F-11",
+      "doc_type": "EOWR",
+      "chunk_seq": 3,
+      "page_start": 11,
+      "page_end": 11,
+      "section_path": "EOWR > Lessons Learned > Drilling",
+      "depth_md_start_m": 2874.0,
+      "depth_md_end_m": 3188.0,
+      "chunk_text": "The main lessons from 15/9-F-11 were to reduce stationary time in the Hugin reservoir section, maintain hole cleaning before connections, and select BHA configurations that limit differential sticking exposure. Several incidents were judged avoidable through execution discipline rather than a fundamental well design change.",
+      "bbox": [92, 240, 524, 354],
+      "token_count": 53
+    },
+    {
+      "chunk_id": "F11_EOWR::bha_summary::001",
+      "doc_id": "F11_EOWR",
+      "well_id": "15/9-F-11",
+      "doc_type": "EOWR",
+      "chunk_seq": 4,
+      "page_start": 9,
+      "page_end": 9,
+      "section_path": "EOWR > Drilling Summary > BHA",
+      "depth_md_start_m": 2810.0,
+      "depth_md_end_m": 3190.0,
+      "chunk_text": "BHA #4 with PDC bit and rotary steerable system drilled the 12-1/4 inch reservoir section. Stabilizer placement and high contact area increased sticking susceptibility when the assembly remained stationary after connections.",
+      "bbox": [82, 198, 514, 294],
+      "token_count": 39
+    },
+    {
+      "chunk_id": "F14_EOWR::comparison::001",
+      "doc_id": "F14_EOWR",
+      "well_id": "15/9-F-14",
+      "doc_type": "EOWR",
+      "chunk_seq": 5,
+      "page_start": 8,
+      "page_end": 8,
+      "section_path": "EOWR > Lessons Learned > Offset Comparison",
+      "depth_md_start_m": 2810.0,
+      "depth_md_end_m": 3155.0,
+      "chunk_text": "15/9-F-14 drilled the Hugin interval with fewer sticking symptoms than F-11 after reducing connection duration, maintaining higher sweep frequency, and applying a more conservative ECD window. The offset supports treating F-11 sticking risk as partly execution-manageable.",
+      "bbox": [100, 220, 520, 332],
+      "token_count": 48
+    }
+  ]
+}

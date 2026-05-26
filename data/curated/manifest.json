@@ -1,0 +1,24 @@
+[
+  {
+    "doc_id": "F11_DDR_20080415",
+    "well_id": "15/9-F-11",
+    "doc_type": "DDR",
+    "date_range": ["2008-04-15", "2008-04-15"],
+    "extraction_method": "mock",
+    "quality_flag": "good",
+    "demo_critical": true,
+    "source_path": "mock/f11_ddr_20080415.pdf",
+    "databricks_source": "/Volumes/equinor_asa_volve_data_village/public/volve/Reports/mock/f11_ddr_20080415.pdf"
+  },
+  {
+    "doc_id": "F11_EOWR",
+    "well_id": "15/9-F-11",
+    "doc_type": "EOWR",
+    "date_range": ["2008-05-15", "2008-05-15"],
+    "extraction_method": "mock",
+    "quality_flag": "good",
+    "demo_critical": true,
+    "source_path": "mock/f11_eowr.pdf",
+    "databricks_source": "/Volumes/equinor_asa_volve_data_village/public/volve/Reports/mock/f11_eowr.pdf"
+  }
+]

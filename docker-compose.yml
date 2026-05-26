@@ -1,0 +1,35 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATA_DIR: /app/data
+      COHERE_AGENT_MODEL: ${COHERE_AGENT_MODEL:-command-a-03-2025}
+      COHERE_VISION_MODEL: ${COHERE_VISION_MODEL:-command-a-plus-05-2026}
+      COHERE_EMBED_MODEL: ${COHERE_EMBED_MODEL:-embed-v4.0}
+      COHERE_RERANK_MODEL: ${COHERE_RERANK_MODEL:-rerank-v3.5}
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:-http://backend:8000}
+      BACKEND_URL: http://backend:8000
+    ports:
+      - "${FRONTEND_PORT:-3001}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy

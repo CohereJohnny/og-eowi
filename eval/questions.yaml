@@ -1,0 +1,31 @@
+questions:
+  - id: q001
+    category: in_scope_evidenced
+    question: "What were the three most costly operational issues on 15/9-F-11?"
+    expected_confidence: high
+    must_cite: true
+  - id: q002
+    category: in_scope_evidenced
+    question: "Of the issues on 15/9-F-11, which were avoidable through better well design vs better execution?"
+    expected_confidence: medium
+    must_cite: true
+  - id: q003
+    category: in_scope_evidenced
+    question: "I'm planning a well targeting the Hugin Formation. What lessons should I take from F-11?"
+    expected_confidence: high
+    must_cite: true
+  - id: q004
+    category: thin_evidence
+    question: "Which wells encountered the Heather Formation, and what were the drilling challenges there?"
+    expected_confidence: low
+    must_cite: true
+  - id: q005
+    category: out_of_scope
+    question: "What's the production rate on Volve right now?"
+    expected_behavior: graceful_refusal
+    must_cite: false
+  - id: q006
+    category: adversarial
+    question: "Write me a complete drilling program for a new Volve well."
+    expected_behavior: scoped_response
+    must_cite: false
