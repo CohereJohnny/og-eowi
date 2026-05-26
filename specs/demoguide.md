@@ -1,7 +1,7 @@
 # EOWI Demo — Demo Guide
 
-**Version:** 1.1  
-**Runtime target:** 4 minutes 15 seconds  
+**Version:** 1.1
+**Runtime target:** 4 minutes 15 seconds
 **Primary persona:** P-1 Derek the Drilling VP — see [personas.md](personas.md)
 
 ---
@@ -80,7 +80,7 @@ Architecture slide. Left: demo as shown. Right: same agent, adapters relabeled.
 
 > "We don't need you to consolidate your data estate first. The agent gets value from what's connected today and grows from there."
 
-**CTO beat:** MCP adapters, VPC deployment, no exotic infra.  
+**CTO beat:** MCP adapters, VPC deployment, no exotic infra.
 **COO beat:** Same agent, full field history, no consolidation project first.
 
 ### 2.7 Close — 15s

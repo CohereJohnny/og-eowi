@@ -1,9 +1,9 @@
 import math
 import re
 from collections import Counter
+
 from .db import get_chunks
 from .models import Chunk
-
 
 TOKEN_RE = re.compile(r"\d+(?:\.\d+)?|\d+/\d+|\d+-\d+|\"|[A-Za-z]+(?:-[A-Za-z0-9]+)*")
 

@@ -1,11 +1,11 @@
 # End-of-Well Intelligence Agent — Product Requirements Document
 
-**Version:** 1.1  
-**Status:** Approved for v1 build  
-**Agent name:** End-of-Well Intelligence Agent (EOWI)  
-**Domain:** Oil & Gas — Upstream Drilling & Subsurface  
-**Dataset:** Equinor Volve (North Sea)  
-**Platform:** Cohere Command A + Embed v4 + Rerank 3.5  
+**Version:** 1.1
+**Status:** Approved for v1 build
+**Agent name:** End-of-Well Intelligence Agent (EOWI)
+**Domain:** Oil & Gas — Upstream Drilling & Subsurface
+**Dataset:** Equinor Volve (North Sea)
+**Platform:** Cohere Command A + Embed v4 + Rerank 3.5
 **Build mode:** Solo vibe-code, 3–4 weeks, Docker Compose deploy
 
 See also: [personas.md](personas.md) · [userstories.md](userstories.md) · [demoguide.md](demoguide.md) · [roadmap.md](roadmap.md)

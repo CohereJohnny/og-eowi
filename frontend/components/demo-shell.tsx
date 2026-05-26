@@ -5,6 +5,10 @@ import { BriefRenderer } from "./brief-renderer";
 import { PdfViewerModal } from "./pdf-viewer-modal";
 import { ToolCallTimeline } from "./tool-call-timeline";
 import type { CitationChunk, ToolEvent } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Text } from "@/components/ui/text";
 
 const DEMO_QUESTION =
   "I'm planning a new well in the Hugin Formation. What are the three things I most need to know from how 15/9-F-11 was drilled?";
@@ -71,51 +75,54 @@ export function DemoShell() {
   }
 
   return (
-    <main className="grid min-h-screen grid-cols-[1fr_360px] bg-slate-950 text-slate-100">
+    <main className="grid min-h-screen grid-cols-[1fr_360px] bg-background text-foreground">
       <section className="flex min-w-0 flex-col">
-        <header className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
+        <header className="flex items-center justify-between border-b border-border bg-card px-6 py-4">
           <div>
-            <h1 className="text-lg font-semibold">End-of-Well Intelligence</h1>
-            <p className="text-sm text-slate-400">Cited engineering briefings over Volve drilling history</p>
+            <Text as="h1" styleAs="h5-small">
+              End-of-Well Intelligence
+            </Text>
+            <Text className="text-muted-foreground">Cited engineering briefings over Volve drilling history</Text>
           </div>
           <div className="flex items-center gap-3">
             <select
               value={wellId}
               onChange={(event) => setWellId(event.target.value)}
-              className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm"
+              className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:outline-[3px] focus-visible:outline-ring/50"
             >
               <option value="15/9-F-11">15/9-F-11</option>
               <option value="15/9-F-14">15/9-F-14</option>
             </select>
-            <span className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-400">Cohere</span>
+            <Badge variant="outline">Cohere</Badge>
           </div>
         </header>
 
         <div className="flex-1 space-y-5 overflow-auto p-6">
-          <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
+          <Card>
+            <CardContent className="space-y-3">
             <textarea
               value={message}
               onChange={(event) => setMessage(event.target.value)}
               rows={3}
-              className="w-full resize-none rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm outline-none focus:border-sky-400"
+              className="w-full resize-none rounded-md border border-input bg-background p-3 text-sm outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-[3px] focus-visible:outline-ring/50"
             />
-            <div className="mt-3 flex items-center gap-3">
-              <button
+            <div className="flex items-center gap-3">
+              <Button
                 onClick={() => void submit()}
                 disabled={isRunning}
-                className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50"
               >
                 {isRunning ? "Running..." : "Ask"}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="outline"
                 onClick={askFollowUp}
                 disabled={isRunning}
-                className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 disabled:opacity-50"
               >
                 Ask design vs execution
-              </button>
+              </Button>
             </div>
-          </div>
+            </CardContent>
+          </Card>
 
           <BriefRenderer text={brief} chunks={chunks} onCitationClick={setSelectedChunk} />
         </div>

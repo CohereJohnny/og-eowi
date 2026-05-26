@@ -1,25 +1,34 @@
 "use client";
 
 import type { ToolEvent } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Text } from "@/components/ui/text";
 
 export function ToolCallTimeline({ events }: { events: ToolEvent[] }) {
   return (
-    <aside className="h-full overflow-auto border-l border-slate-800 bg-slate-950/70 p-4">
-      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-400">Tool-call timeline</h2>
+    <aside className="h-full overflow-auto border-l border-border bg-card p-4">
+      <Text as="h2" styleAs="label" className="mb-4 text-muted-foreground">
+        Tool-call timeline
+      </Text>
       <div className="space-y-3">
         {events
           .filter((event) => event.type === "tool_call" || event.type === "tool_result" || event.type === "thinking")
           .map((event, index) => (
-            <div key={`${event.type}-${index}`} className="rounded-lg border border-slate-800 bg-slate-900/80 p-3">
-              <div className="text-xs uppercase tracking-wide text-sky-300">{event.type.replace("_", " ")}</div>
-              <div className="mt-1 text-sm font-medium text-slate-100">{event.name ?? event.text}</div>
+            <Card key={`${event.type}-${index}`} className="py-3">
+              <CardContent className="space-y-2 px-3">
+              <Badge variant={event.type === "tool_result" ? "success" : "info"}>{event.type.replace("_", " ")}</Badge>
+              <Text styleAs="p-sm" className="font-medium">
+                {event.name ?? event.text}
+              </Text>
               {event.params ? (
-                <pre className="mt-2 whitespace-pre-wrap rounded bg-slate-950 p-2 text-xs text-slate-300">
+                <pre className="whitespace-pre-wrap rounded-md border border-border bg-background p-2 text-caption text-muted-foreground">
                   {JSON.stringify(event.params, null, 2)}
                 </pre>
               ) : null}
-              {event.summary ? <p className="mt-2 text-xs text-slate-400">{event.summary}</p> : null}
-            </div>
+              {event.summary ? <Text styleAs="caption" className="text-muted-foreground">{event.summary}</Text> : null}
+              </CardContent>
+            </Card>
           ))}
       </div>
     </aside>

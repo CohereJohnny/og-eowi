@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+
 from .agent import run_agent
 from .db import get_chunk, get_documents, list_wells
 from .models import ChatRequest

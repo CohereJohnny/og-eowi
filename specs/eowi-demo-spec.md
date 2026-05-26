@@ -1,7 +1,7 @@
 # End-of-Well Intelligence Agent — Demo Specification
 
-**Version:** 1.0 (monolith — see split specs below)  
-**Purpose:** Buildable specification for a Cohere-powered agentic demo using the Equinor Volve dataset, targeting oil & gas executive audiences (Drilling VP, COO, CTO, subsurface leadership).  
+**Version:** 1.0 (monolith — see split specs below)
+**Purpose:** Buildable specification for a Cohere-powered agentic demo using the Equinor Volve dataset, targeting oil & gas executive audiences (Drilling VP, COO, CTO, subsurface leadership).
 **Build mode:** Vibe-code with Cursor (or equivalent), targeting a working demo in 3–4 weeks solo.
 
 > **Authoritative v1 specs:** This document is the original comprehensive specification. Build decisions resolved in the May 2026 grill session are captured in the [split specification hierarchy](README.md): [prd.md](prd.md), [personas.md](personas.md), [userstories.md](userstories.md), [demoguide.md](demoguide.md), [techstack.md](techstack.md), [architecture.md](architecture.md), [datamodel.md](datamodel.md), [uiux.md](uiux.md), [roadmap.md](roadmap.md). **Where they diverge, the split docs win.**

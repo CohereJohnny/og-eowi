@@ -3,6 +3,8 @@
 import type { CitationChunk } from "@/lib/types";
 import { extractCitationIds, findChunk } from "@/lib/citations";
 import { CitationChip } from "./citation-chip";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Text } from "@/components/ui/text";
 
 export function BriefRenderer({
   text,
@@ -15,9 +17,11 @@ export function BriefRenderer({
 }) {
   if (!text) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-700 p-8 text-slate-400">
-        Ask about drilling, formations, lessons learned, or design vs execution.
-      </div>
+      <Card className="border-dashed">
+        <CardContent>
+          <Text className="text-muted-foreground">Ask about drilling, formations, lessons learned, or design vs execution.</Text>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -25,8 +29,9 @@ export function BriefRenderer({
   const parts = text.split(/(\[[^\]]+\])/g);
 
   return (
-    <article className="prose prose-invert max-w-none rounded-xl border border-slate-800 bg-slate-900/70 p-6">
-      <div className="whitespace-pre-wrap text-sm leading-7 text-slate-100">
+    <Card>
+      <CardContent>
+      <div className="whitespace-pre-wrap text-p leading-7 text-foreground">
         {parts.map((part, index) => {
           const match = part.match(/^\[([^\]]+)\]$/);
           if (!match) {
@@ -43,11 +48,12 @@ export function BriefRenderer({
           );
         })}
       </div>
+      </CardContent>
       {citationIds.length ? (
-        <div className="mt-6 border-t border-slate-800 pt-4 text-xs text-slate-400">
+        <CardFooter className="border-t border-border pt-4 text-caption text-muted-foreground">
           Citations in this brief: {Array.from(new Set(citationIds)).length}
-        </div>
+        </CardFooter>
       ) : null}
-    </article>
+    </Card>
   );
 }

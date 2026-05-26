@@ -1,4 +1,5 @@
 .env
+.env.local
 .venv/
 __pycache__/
 .pytest_cache/
@@ -6,6 +7,7 @@ __pycache__/
 .ruff_cache/
 node_modules/
 .next/
+*.tsbuildinfo
 dist/
 build/
 data/raw/

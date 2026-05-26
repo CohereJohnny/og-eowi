@@ -1,7 +1,8 @@
-from collections import defaultdict
-from collections.abc import AsyncIterator
 import asyncio
 import json
+from collections import defaultdict
+from collections.abc import AsyncIterator
+
 from .models import ToolEvent
 from .tools import (
     get_formation_tops,
@@ -11,7 +12,6 @@ from .tools import (
     search_drilling_reports,
 )
 from .verification import verify_citations
-
 
 SESSIONS: dict[str, list[dict[str, str]]] = defaultdict(list)
 
@@ -23,7 +23,14 @@ def _event(event: ToolEvent) -> str:
 def _format_findings(chunks: list[dict], query: str) -> str:
     ids = {chunk["chunk_id"] for chunk in chunks}
     stuck = next((chunk for chunk in chunks if "stuck" in chunk["chunk_text"].lower()), chunks[0])
-    mud = next((chunk for chunk in chunks if "mud weight" in chunk["chunk_text"].lower() or "ecd" in chunk["chunk_text"].lower()), chunks[min(1, len(chunks) - 1)])
+    mud = next(
+        (
+            chunk
+            for chunk in chunks
+            if "mud weight" in chunk["chunk_text"].lower() or "ecd" in chunk["chunk_text"].lower()
+        ),
+        chunks[min(1, len(chunks) - 1)],
+    )
     lesson = next((chunk for chunk in chunks if "lessons" in chunk["section_path"].lower()), chunks[-1])
 
     if "design" in query.lower() and "execution" in query.lower():
@@ -91,7 +98,9 @@ This answer uses the v1 demo corpus. Campaign-wide conclusions should wait for t
 
 async def run_agent(message: str, session_id: str, well_id: str | None = "15/9-F-11") -> AsyncIterator[str]:
     SESSIONS[session_id].append({"role": "user", "message": message})
-    yield _event(ToolEvent(type="thinking", text="Planning retrieval over F-11 reports, structured well data, and offset wells."))
+    yield _event(
+        ToolEvent(type="thinking", text="Planning retrieval over F-11 reports, structured well data, and offset wells.")
+    )
     await asyncio.sleep(0.05)
 
     yield _event(ToolEvent(type="tool_call", name="get_well_header", params={"well_id": well_id}))
@@ -105,13 +114,26 @@ async def run_agent(message: str, session_id: str, well_id: str | None = "15/9-F
     await asyncio.sleep(0.05)
 
     query = message
-    yield _event(ToolEvent(type="tool_call", name="search_drilling_reports", params={"query": query, "well_id": well_id}))
+    yield _event(
+        ToolEvent(type="tool_call", name="search_drilling_reports", params={"query": query, "well_id": well_id})
+    )
     search = search_drilling_reports(query=query, well_id=well_id)
-    yield _event(ToolEvent(type="tool_result", name="search_drilling_reports", summary=search["summary"], data={"chunks": search["chunks"]}))
+    yield _event(
+        ToolEvent(
+            type="tool_result",
+            name="search_drilling_reports",
+            summary=search["summary"],
+            data={"chunks": search["chunks"]},
+        )
+    )
     await asyncio.sleep(0.05)
 
     if "offset" in message.lower() or "execution" in message.lower() or "design" in message.lower():
-        yield _event(ToolEvent(type="tool_call", name="get_offset_wells", params={"reference_well_id": well_id, "formation": "Hugin"}))
+        yield _event(
+            ToolEvent(
+                type="tool_call", name="get_offset_wells", params={"reference_well_id": well_id, "formation": "Hugin"}
+            )
+        )
         offsets = get_offset_wells(reference_well_id=well_id or "15/9-F-11", formation="Hugin")
         yield _event(ToolEvent(type="tool_result", name="get_offset_wells", summary=offsets["summary"], data=offsets))
 

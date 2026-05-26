@@ -5,6 +5,8 @@ services:
     env_file:
       - path: .env
         required: false
+      - path: .env.local
+        required: false
     environment:
       DATA_DIR: /app/data
       COHERE_AGENT_MODEL: ${COHERE_AGENT_MODEL:-command-a-03-2025}
@@ -13,6 +15,8 @@ services:
       COHERE_RERANK_MODEL: ${COHERE_RERANK_MODEL:-rerank-v3.5}
     volumes:
       - ./data:/app/data
+    ports:
+      - "${BACKEND_PORT:-8001}:8000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 10s
@@ -24,6 +28,8 @@ services:
       context: ./frontend
     env_file:
       - path: .env
+        required: false
+      - path: .env.local
         required: false
     environment:
       NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:-http://backend:8000}

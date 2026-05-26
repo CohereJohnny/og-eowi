@@ -7,10 +7,10 @@ EOWI is a Cohere-powered demo that answers drilling questions about Volve well 1
 1. Copy environment variables:
 
 ```bash
-cp .env.example .env
+cp .env.example .env.local
 ```
 
-2. Add `COHERE_API_KEY` to `.env` when live Cohere calls are needed. The demo also runs against the bundled mock corpus without the key.
+2. Add `COHERE_API_KEY` to `.env.local` when live Cohere calls are needed. The demo also runs against the bundled mock corpus without the key.
 
 3. Start the demo:
 
@@ -20,7 +20,7 @@ docker compose up --build
 
 4. Open `http://localhost:3001`.
 
-The backend is private to the Compose network by default. For direct backend debugging, run it locally with Uvicorn or add a temporary host port mapping.
+The backend is published on `http://localhost:8001` for direct debugging. The frontend still proxies to the backend over the Compose network.
 
 ## Local Development
 
@@ -31,7 +31,7 @@ cd backend
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --port 8001
 ```
 
 Frontend:
@@ -39,7 +39,7 @@ Frontend:
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev -- -p 3001
 ```
 
 ## Data Flow

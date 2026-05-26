@@ -8,7 +8,6 @@ import json
 import re
 from pathlib import Path
 
-
 SECTION_PATTERNS = {
     "problems_encountered": re.compile(r"problems?\s+encountered|stuck|pack-off", re.I),
     "mud_properties": re.compile(r"mud\s+properties|mud\s+weight|ECD", re.I),

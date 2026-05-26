@@ -27,7 +27,9 @@ def main() -> None:
         con.execute(f"DROP TABLE IF EXISTS {table}")
 
     con.execute("CREATE TABLE wells AS SELECT * FROM read_json_auto(?)", [json.dumps(corpus["wells"])])
-    con.execute("CREATE TABLE formation_tops AS SELECT * FROM read_json_auto(?)", [json.dumps(corpus["formation_tops"])])
+    con.execute(
+        "CREATE TABLE formation_tops AS SELECT * FROM read_json_auto(?)", [json.dumps(corpus["formation_tops"])]
+    )
     con.execute("CREATE TABLE documents AS SELECT * FROM read_json_auto(?)", [json.dumps(corpus["documents"])])
     con.execute("CREATE TABLE chunks AS SELECT * FROM read_json_auto(?)", [json.dumps(corpus["chunks"])])
     con.close()

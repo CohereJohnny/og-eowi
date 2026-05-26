@@ -1,32 +1,35 @@
 "use client";
 
 import type { CitationChunk } from "@/lib/types";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Text } from "@/components/ui/text";
 
 export function PdfViewerModal({ chunk, onClose }: { chunk: CitationChunk | null; onClose: () => void }) {
-  if (!chunk) {
-    return null;
-  }
+  const isOpen = Boolean(chunk);
+  if (!chunk) return null;
 
   const [x, y, width, height] = chunk.bbox;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-8">
-      <div className="relative h-full max-h-[760px] w-full max-w-4xl rounded-xl border border-slate-700 bg-slate-900 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-700 px-5 py-3">
-          <div>
-            <h2 className="text-sm font-semibold text-slate-100">Source PDF drill-down</h2>
-            <p className="text-xs text-slate-400">
-              {chunk.doc_id}, page {chunk.page_start} · {chunk.section_path}
-            </p>
-          </div>
-          <button className="rounded-md border border-slate-600 px-3 py-1 text-sm text-slate-200" onClick={onClose}>
-            Close
-          </button>
-        </div>
-        <div className="flex h-[680px] justify-center overflow-auto bg-slate-800 p-8">
-          <div className="relative h-[620px] w-[480px] bg-white text-slate-950 shadow-xl">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="h-[min(90vh,760px)] max-w-modal-lg p-0">
+        <DialogHeader className="border-b border-border px-5 py-4">
+          <DialogTitle>Source PDF drill-down</DialogTitle>
+          <DialogDescription>
+            {chunk.doc_id}, page {chunk.page_start} · {chunk.section_path}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogBody className="flex justify-center bg-muted p-8">
+          <div className="relative h-[620px] w-[480px] bg-popover text-popover-foreground shadow-lg">
             <div
-              className="absolute bg-yellow-300/50"
+              className="absolute bg-caution/40"
               style={{
                 left: `${Math.min(x / 6, 70)}%`,
                 top: `${Math.min(y / 8, 70)}%`,
@@ -34,17 +37,17 @@ export function PdfViewerModal({ chunk, onClose }: { chunk: CitationChunk | null
                 height: `${Math.max(Math.min(height / 5, 18), 8)}%`
               }}
             />
-            <div className="p-10 text-sm leading-7">
-              <p className="mb-6 font-semibold">Mock source page {chunk.page_start}</p>
-              <p>{chunk.chunk_text}</p>
-              <p className="mt-8 text-xs text-slate-500">
+            <div className="p-10 text-p leading-7">
+              <Text className="mb-6 font-semibold">Mock source page {chunk.page_start}</Text>
+              <Text>{chunk.chunk_text}</Text>
+              <Text styleAs="caption" className="mt-8 text-muted-foreground">
                 Real Volve PDFs mount at `data/curated/pdfs` when the Databricks export is complete. This modal preserves the
                 v1 block-level highlight behavior and swaps to react-pdf for real PDFs.
-              </p>
+              </Text>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
   );
 }
