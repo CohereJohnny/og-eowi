@@ -36,13 +36,13 @@ repos:
       - id: frontend-typecheck
         name: frontend typecheck
         language: system
-        entry: npm --prefix frontend run typecheck
+        entry: pnpm --dir frontend run typecheck
         pass_filenames: false
         stages: [pre-push]
 
       - id: backend-tests
         name: backend tests
         language: system
-        entry: python3 -m pytest
+        entry: uv run pytest
         pass_filenames: false
         stages: [pre-push]
