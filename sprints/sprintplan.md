@@ -19,7 +19,8 @@ Build a presenter-ready, cold-laptop deployable agentic demo that answers drilli
 flowchart LR
     S1[Sprint1_FoundationAndData] --> S2[Sprint2_NorthPlatformPivot]
     S2 --> S3[Sprint3_NorthAgentLibraryIntegration]
-    S3 --> S4[Sprint4_NorthStreamingAndCitations]
+    S3 --> S35[Sprint3_5_VolveDataFetchAndCuration]
+    S35 --> S4[Sprint4_NorthStreamingAndCitations]
     S4 --> S5[Sprint5_EvalAndDemoReady]
 ```
 
@@ -29,8 +30,9 @@ flowchart LR
 |---|---|---|
 | 1 | Foundation, Docker Compose, Databricks export script, extraction/parsing, mock corpus | `specs/architecture.md`, US-1.1 to US-1.4 |
 | 2 | North platform architecture/spec pivot, API contract research, go/no-go checklist | `specs/architecture.md`, `specs/techstack.md`, `specs/datamodel.md`, `specs/north-integration.md` |
-| 3 | North Library ingestion, North-hosted EOWI agent, FastAPI proxy integration | US-1.3 to US-3.3, `specs/north-integration.md` |
-| 4 | North streaming adaptation, citation mapping, PDF/source UI behavior | `specs/uiux.md`, US-4.1 to US-4.2 |
+| 3 | North Library integration, North-hosted EOWI agent, FastAPI proxy, streaming adapter | US-1.3 to US-3.3, `specs/north-integration.md` |
+| 3.5 | Volve Databricks export, local curation, North Library rebuild with real PDFs | US-1.1, US-1.2, US-1.3 |
+| 4 | North streaming polish, citation mapping, PDF/source UI behavior | `specs/uiux.md`, US-4.1 to US-4.2 |
 | 5 | Eval harness, Docker hardening, dry runs, bridge slide, internal review | `specs/demoguide.md`, US-4.3 to US-5.2 |
 
 ## Success Metrics

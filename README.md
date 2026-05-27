@@ -44,13 +44,21 @@ pnpm --dir frontend run dev -- -p 3001
 flowchart LR
     Databricks[DatabricksVolume] --> Export[fetch_volve_databricks.py]
     Export --> Raw[data/raw]
-    Raw --> Extract[extract_text.py]
-    Extract --> Parse[parse_sections.py]
-    Parse --> Chunk[chunk_and_enrich.py]
-    Chunk --> Index[embed_and_index.py]
-    Index --> Backend[FastAPIAgent]
+    Raw --> Curate[curate_volve_pdfs.py]
+    Curate --> Curated[data/curated/pdfs]
+    Curated --> NorthSetup[north_setup.py]
+    NorthSetup --> North[NorthLibraryAndAgent]
+    North --> Backend[FastAPIProxy]
     Backend --> Frontend[NextJSUI]
 ```
+
+### Real Volve data (Sprint 3.5)
+
+1. Mount or copy the Databricks volume path from `scripts/wells.yaml` (default: `/Volumes/equinor_asa_volve_data_village/public/volve`).
+2. Export: `uv run python scripts/fetch_volve_databricks.py`
+3. Curate: `uv run python scripts/curate_volve_pdfs.py`
+4. North ingest: `uv run python scripts/north_setup.py` (requires `NORTH_BEARER_TOKEN` in `.env.local`)
+5. Copy `library_id` and `agent_id` from `data/north/state.json` into `.env.local`.
 
 ## Demo Questions
 

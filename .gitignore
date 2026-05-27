@@ -15,6 +15,7 @@ data/raw/
 data/extracted/
 data/parsed/
 data/index/
+data/north/
 data/curated/pdfs/*.pdf
 eval/runs/
 *.duckdb

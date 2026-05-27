@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { BriefRenderer } from "./brief-renderer";
+import { NorthSettingsPanel } from "./north-settings-panel";
 import { PdfViewerModal } from "./pdf-viewer-modal";
 import { ToolCallTimeline } from "./tool-call-timeline";
 import type { CitationChunk, ToolEvent } from "@/lib/types";
@@ -123,6 +124,8 @@ export function DemoShell() {
             </div>
             </CardContent>
           </Card>
+
+          <NorthSettingsPanel />
 
           <BriefRenderer text={brief} chunks={chunks} onCitationClick={setSelectedChunk} />
         </div>
