@@ -26,10 +26,10 @@ Three-pane, desktop-optimized:
 │  Main: chat input at top, brief output below           │  Tool-call timeline     │
 │                                                        │  (auto-scrolling)       │
 │  ┌──────────────────────────────────────────────────┐  │                         │
-│  │ Ask about drilling, formations, or lessons...   ▶│  │  [search_drilling..]    │
+│  │ Ask about drilling, formations, or lessons...   ▶│  │  [north_library]        │
 │  └──────────────────────────────────────────────────┘  │   query: stuck pipe     │
 │                                                        │   well: 15/9-F-11       │
-│  Summary                                               │   → 8 chunks            │
+│  Summary                                               │   → cited sources       │
 │  Key Findings                                          │  [get_formation_tops]     │
 │  1. Differential sticking...  [DDR-23 ●]               │  ...                    │
 └────────────────────────────────────────────────────────┴─────────────────────────┘
@@ -38,7 +38,7 @@ Three-pane, desktop-optimized:
 ### Header
 
 - Title: "End-of-Well Intelligence"
-- **Well selector:** Shows indexed wells only (v1: F-11 + offsets). Default `15/9-F-11`
+- **Well selector:** Shows wells available in the active North Library or local fallback corpus. Default `15/9-F-11`
 - Cohere logo (demo branding)
 
 ### Main panel
@@ -57,13 +57,13 @@ Three-pane, desktop-optimized:
 
 ## Citation chips
 
-Inline pills with abbreviated chunk_id:
+Inline pills with abbreviated source labels:
 
 ```
 ... stuck at 2,950m MD on Day 23. [DDR-23 ●]
 ```
 
-**Hover:** Tooltip with `section_path` + first 200 chars of chunk text
+**Hover:** Tooltip with source document, page/section when available, and the first 200 chars of cited snippet
 
 **Click:** Opens PDF viewer modal
 
@@ -79,11 +79,11 @@ Inline pills with abbreviated chunk_id:
 
 - Correct PDF opens
 - Navigates to cited page
-- **Block-level highlight:** semi-transparent band over paragraph layout block bbox from extraction (pdfplumber or vision)
+- **Block-level highlight:** semi-transparent band over the cited paragraph when North citation metadata or local enrichment provides page/coordinate data
 
 **Stretch (Phase 5):** Char-level highlight with precise substring overlay
 
-**Coordinate conversion note:** pdfplumber uses PDF points (origin bottom-left); react-pdf uses CSS pixels (origin top-left). Prototype conversion on day one with one known page — do not discover in week 3.
+**Coordinate conversion note:** if local enrichment is used, verify coordinate conversion against one known page before demo rehearsal.
 
 **Presenter fallback:** *"Highlighted the relevant paragraph"* if block band is approximate
 
@@ -111,9 +111,9 @@ Inline pills with abbreviated chunk_id:
 
 Honest about partial v1 coverage — see [roadmap.md](roadmap.md).
 
-### Citation verification failure
+### Citation metadata failure
 
-Never shown to user. Triggers internal agent retry.
+If a source citation lacks page/highlight data, show source name and snippet instead of a broken PDF highlight.
 
 ### Tool failure
 

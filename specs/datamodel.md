@@ -1,22 +1,126 @@
 # EOWI Demo — Data Model
 
-Schemas for structured store (DuckDB), vector store (LanceDB), BM25 index, and document registry.
+Data model for the North platform pivot. North Files and Libraries become the source of truth for document storage, indexing, and retrieval; local data remains staging, fallback, and optional structured metadata.
 
-See [architecture.md](architecture.md) for ingestion flow that populates these stores.
-
----
-
-## Design principles
-
-- **DuckDB** for analytic/structured queries the agent runs via tools
-- **LanceDB** for embedding search with metadata prefilter
-- **bm25s** for lexical search over the same chunk corpus
-- **chunks** table is the unit of retrieval and citation
-- Schemas portable to Postgres/Snowflake later (swap connection layer only)
+See [architecture.md](architecture.md) for the North ingestion and runtime flow.
 
 ---
 
-## DuckDB — structured store
+## Design Principles
+
+- **North Libraries own document retrieval**: local chunk, embedding, LanceDB, and BM25 schemas are no longer the primary runtime model.
+- **Local data is staging/fallback**: Databricks exports and mock corpora remain useful for curation, CI, and offline demos.
+- **North IDs are first-class**: `library_id`, `file_id`, `artifact_id`, and `agent_id` must be captured so the demo can connect UI state to North resources.
+- **Citation mapping is explicit**: the app must preserve enough metadata to connect North citation payloads to source titles, pages, snippets, and any local PDF viewer affordances.
+- **Structured well data may remain local temporarily**: well headers, formation tops, and offset metadata stay portable until North custom tool support is validated.
+
+---
+
+## North Resource Registry
+
+### north_agent
+
+**Purpose:** Identifies the hosted EOWI agent used by the demo.
+
+**Fields:**
+
+- `agent_id` (TEXT, required): North agent identifier.
+- `name` (TEXT, required): Display name for the EOWI agent.
+- `visibility` (TEXT, required): North visibility setting.
+- `model` (TEXT, nullable): Configured model, if explicitly set.
+- `library_ids` (TEXT[], required): North Libraries associated with the agent.
+- `created_at` (TIMESTAMP, nullable): Creation time returned by North.
+- `updated_at` (TIMESTAMP, nullable): Last update time returned by North.
+
+### north_library
+
+**Purpose:** Tracks the North Library that contains the curated Volve demo corpus.
+
+**Fields:**
+
+- `library_id` (TEXT, required): North Library identifier.
+- `name` (TEXT, required): Library display name.
+- `description` (TEXT, nullable): Library purpose and corpus scope.
+- `tool_id` (TEXT, required): North tool association; v1 expects `my_drive`.
+- `status` (TEXT, required): Sync state returned by North.
+- `count_total` (INTEGER): Total artifacts/files in the library.
+- `count_success` (INTEGER): Successfully synced artifacts/files.
+- `count_failed` (INTEGER): Failed artifacts/files.
+- `last_sync_time` (TIMESTAMP, nullable): Last North sync time.
+
+**Business rules:**
+
+- A demo-ready library must have no failed demo-critical files.
+- The active `library_id` must be associated with the active `agent_id`.
+
+### north_library_job
+
+**Purpose:** Tracks asynchronous library creation from uploaded files.
+
+**Fields:**
+
+- `job_id` (TEXT, required): North Library job identifier.
+- `name` (TEXT, required): Target library name.
+- `state` (TEXT, required): `RUNNING`, `COMPLETED`, or `FAILED`.
+- `library_id` (TEXT, nullable): Populated when the job completes.
+- `total_files` (INTEGER): Number of files submitted.
+- `indexed_files` (INTEGER): Number of files indexed.
+- `failed_files` (INTEGER): Number of files that failed.
+- `failed_file_details` (JSON, nullable): File-level failure details returned by North.
+
+**Business rules:**
+
+- The backend must poll a library job until completion before treating the library as demo-ready.
+- Failed files must be reported in Sprint validation and cannot be silently ignored for demo-critical documents.
+
+### north_artifact
+
+**Purpose:** Maps curated local documents to North artifacts/files.
+
+**Fields:**
+
+- `artifact_id` (TEXT, required): North artifact or file identifier.
+- `library_id` (TEXT, nullable): Associated North Library.
+- `local_doc_id` (TEXT, required): Local deterministic document identifier.
+- `display_name` (TEXT, required): Human-readable filename/title.
+- `artifact_type` (TEXT, required): `file` or `folder`.
+- `source_path` (TEXT, nullable): Original Databricks or local staging path.
+- `well_id` (TEXT, nullable): Associated well.
+- `doc_type` (TEXT, nullable): DDR, EOWR, completion report, geology report, or related type.
+- `demo_critical` (BOOLEAN, default false): Whether the file is required for the scripted demo.
+
+---
+
+## Citation Mapping
+
+### north_citation
+
+**Purpose:** Normalized citation object consumed by the UI.
+
+**Fields:**
+
+- `citation_id` (TEXT, required): Stable citation identifier generated by North or by the backend adapter.
+- `library_id` (TEXT, required): Source North Library.
+- `artifact_id` (TEXT, nullable): Source file/artifact if returned by North.
+- `local_doc_id` (TEXT, nullable): Local document mapping if known.
+- `display_name` (TEXT, nullable): Source document name.
+- `page_start` (INTEGER, nullable): First cited page, if available.
+- `page_end` (INTEGER, nullable): Last cited page, if available.
+- `snippet` (TEXT, nullable): Cited text preview.
+- `section_path` (TEXT, nullable): Section label if provided or inferred.
+- `bbox` (JSON, nullable): Highlight coordinates if North or local mapping provides them.
+
+**Business rules:**
+
+- Every visible citation chip must resolve to a source document name and a text preview at minimum.
+- Page and bbox highlighting are preferred but not required until North citation payloads are validated.
+- If North does not return page/bbox data, the UI must gracefully show a source preview instead of a broken PDF highlight.
+
+---
+
+## Local Structured Store
+
+Structured well metadata remains local unless and until North-hosted custom tools can serve it directly.
 
 ### wells
 
@@ -85,13 +189,13 @@ See [architecture.md](architecture.md) for ingestion flow that populates these s
 
 ---
 
-### documents
+## Local Document Registry
 
-**Purpose:** Canonical document registry.
+**Purpose:** Canonical local curation registry that maps Databricks/local files to North artifacts.
 
 | Field | Type | Constraints | Description |
 |---|---|---|---|
-| doc_id | TEXT | PK | Deterministic hash of path |
+| doc_id | TEXT | PK | Deterministic local identifier |
 | well_id | TEXT | nullable | Some docs span wells |
 | doc_type | TEXT | NOT NULL | DDR, EOWR, COMPLETION_RPT, GEO_RPT |
 | title | TEXT | | |
@@ -103,21 +207,23 @@ See [architecture.md](architecture.md) for ingestion flow that populates these s
 | extraction_method | TEXT | pdfplumber, pymupdf, vision | |
 | quality_flag | TEXT | good, vision_extracted, partial, failed | |
 | demo_critical | BOOLEAN | default false | v1 corpus tag |
+| north_artifact_id | TEXT | nullable | North file/artifact mapping |
+| north_library_id | TEXT | nullable | North Library mapping |
 
 **quality_flag values:**
 
 | Value | Meaning |
 |---|---|
 | good | Native text extraction via pdfplumber |
-| vision_extracted | Scan PDF processed by Command A Plus at ingestion |
+| vision_extracted | Scan PDF processed before upload or by fallback local pipeline |
 | partial | Section parse failed; whole-page chunks used |
 | failed | Excluded from index |
 
 ---
 
-### chunks
+## Local Fallback Chunks
 
-**Purpose:** Unit of retrieval and citation.
+**Purpose:** Offline/mock retrieval unit retained for CI, local demo fallback, and regression tests.
 
 | Field | Type | Constraints | Description |
 |---|---|---|---|
@@ -139,46 +245,16 @@ See [architecture.md](architecture.md) for ingestion flow that populates these s
 
 ---
 
-## LanceDB — vector store
+## Deprecated Local Retrieval Stores
 
-Single table embedded alongside the app.
+The following stores are no longer primary v1 architecture after the North pivot:
 
-| Field | Type | Description |
-|---|---|---|
-| chunk_id | string | FK to chunks.chunk_id |
-| well_id | string | Prefilter |
-| doc_type | string | Prefilter |
-| embedding | vector(1024) | Cohere Embed v4 |
-| text | string | Denormalized for inspection |
+- LanceDB vector table.
+- bm25s lexical index.
+- Locally generated chunk embeddings.
+- Locally persisted retrieval corpus under `data/index/`.
 
-- Index: HNSW (LanceDB default)
-- Embed input: `{section_path}\n\n{chunk_text}` with `input_type=search_document`
-
----
-
-## BM25 store
-
-In-process `bm25s` index over `chunks.chunk_text`.
-
-**Token pattern** (preserves drilling identifiers):
-
-```python
-TOKEN_PATTERN = r"""(?x)
-    \d+(?:\.\d+)?    # numbers including decimals
-    | \d+/\d+        # fractions like 9/5
-    | \d+-\d+        # ranges
-    | \"             # inch marks
-    | [A-Za-z]+(?:-[A-Za-z0-9]+)*   # words and hyphenated compounds
-"""
-```
-
----
-
-## Source PDF store
-
-Filesystem: `data/curated/pdfs/{doc_id}.pdf`
-
-PDF viewer reads originals directly. No transformation.
+They may remain in the repository as scaffold or fallback until the North integration is complete.
 
 ---
 
@@ -191,7 +267,7 @@ PDF viewer reads originals directly. No transformation.
 | `Well_technical_data/` | Well headers, completion data |
 | `Well_logs_pr_WELL/` | Per-well log bundles |
 
-Exact path conventions documented in `data/curated/manifest.json` after first export.
+Exact path conventions are documented in `data/curated/manifest.json` after first export and then mapped to North artifacts.
 
 ---
 
@@ -207,17 +283,19 @@ Exact path conventions documented in `data/curated/manifest.json` after first ex
   "quality_flag": "good",
   "demo_critical": true,
   "source_path": "Reports/...",
-  "databricks_source": "/Volumes/equinor_asa_volve_data_village/public/volve/Reports/..."
+  "databricks_source": "/Volumes/equinor_asa_volve_data_village/public/volve/Reports/...",
+  "north_artifact_id": null,
+  "north_library_id": null
 }
 ```
 
 ---
 
-## Extension points (designed-for)
+## Extension Points
 
-- New `doc_type` values — extend enum + parser registry
-- New structured tools — add DuckDB tables + tool definition
-- Snowflake backend — portable SQL from DuckDB schema
-- Cohere Compass — replace LanceDB+BM25 if outgrown
+- New `doc_type` values — extend local registry and North Library metadata.
+- Multiple Libraries — split by well, document type, or demo phase if North retrieval benefits.
+- Structured tools in North — move well headers and formation tops behind North function tools.
+- Citation enhancement — enrich North citations with local page/bbox metadata when available.
 
 See [roadmap.md](roadmap.md).

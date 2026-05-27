@@ -17,9 +17,9 @@ Build a presenter-ready, cold-laptop deployable agentic demo that answers drilli
 
 ```mermaid
 flowchart LR
-    S1[Sprint1_FoundationAndData] --> S2[Sprint2_IndexAndRetrieve]
-    S2 --> S3[Sprint3_AgentAndTools]
-    S3 --> S4[Sprint4_UIAndStreaming]
+    S1[Sprint1_FoundationAndData] --> S2[Sprint2_NorthPlatformPivot]
+    S2 --> S3[Sprint3_NorthAgentLibraryIntegration]
+    S3 --> S4[Sprint4_NorthStreamingAndCitations]
     S4 --> S5[Sprint5_EvalAndDemoReady]
 ```
 
@@ -28,9 +28,9 @@ flowchart LR
 | Sprint | Focus | Primary spec anchors |
 |---|---|---|
 | 1 | Foundation, Docker Compose, Databricks export script, extraction/parsing, mock corpus | `specs/architecture.md`, US-1.1 to US-1.4 |
-| 2 | Chunking, DuckDB/LanceDB/BM25 indexes, hybrid retrieval CLI | `specs/datamodel.md`, US-1.5, US-2.1 |
-| 3 | Five tools, agent loop, citation verification, SSE chat API | `specs/architecture.md`, US-3.1 to US-3.5 |
-| 4 | Next.js UI, streaming, timeline, citation chips, PDF viewer | `specs/uiux.md`, US-4.1 to US-4.2 |
+| 2 | North platform architecture/spec pivot, API contract research, go/no-go checklist | `specs/architecture.md`, `specs/techstack.md`, `specs/datamodel.md`, `specs/north-integration.md` |
+| 3 | North Library ingestion, North-hosted EOWI agent, FastAPI proxy integration | US-1.3 to US-3.3, `specs/north-integration.md` |
+| 4 | North streaming adaptation, citation mapping, PDF/source UI behavior | `specs/uiux.md`, US-4.1 to US-4.2 |
 | 5 | Eval harness, Docker hardening, dry runs, bridge slide, internal review | `specs/demoguide.md`, US-4.3 to US-5.2 |
 
 ## Success Metrics
@@ -43,3 +43,14 @@ flowchart LR
 | Eval categories 2-3 | 80%+ pass |
 | Cold laptop setup | 10 minutes or less |
 | Dry runs | 5 consecutive clean runs |
+
+## North Pivot Notes
+
+Sprint 2 replaces the planned local indexing implementation with a North platform migration design. DuckDB, LanceDB, BM25, and local chunking may remain as fallback or historical scaffold, but they are not the primary v1 runtime path.
+
+Sprint 3 begins only after the Sprint 2 go/no-go checklist confirms:
+
+- North Library creation from uploaded curated files is feasible.
+- North agent configuration can reference the EOWI Library.
+- The backend can call North with server-side authentication.
+- North answer and citation payloads can be mapped to the current UI or to an explicitly revised UI contract.

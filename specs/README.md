@@ -12,7 +12,8 @@ This directory contains the buildable specification for the Cohere-powered End-o
 | [demoguide.md](demoguide.md) | Canonical demo script and rehearsal checklist |
 | [techstack.md](techstack.md) | Technology choices and rejected alternatives |
 | [architecture.md](architecture.md) | System design, agent loop, retrieval, ingestion |
-| [datamodel.md](datamodel.md) | DuckDB, LanceDB, BM25, and document schemas |
+| [datamodel.md](datamodel.md) | North resource IDs, Library status, citation mapping, and fallback document schemas |
+| [north-integration.md](north-integration.md) | North API contracts, environment variables, Sprint 3 go/no-go criteria, and open risks |
 | [uiux.md](uiux.md) | Layout, streaming, citation chips, PDF viewer |
 | [roadmap.md](roadmap.md) | v1 limitations, deferred features, future enhancements |
 
@@ -26,7 +27,8 @@ These decisions were resolved in a structured review of [eowi-demo-spec.md](eowi
 - **Delivery mode:** Live presenter-controlled primary; one off-script question tolerated; self-serve URL deferred
 - **Data corpus v1:** F-11 + 5 offset wells; full 17-well field on roadmap
 - **Stack:** Python FastAPI backend + Next.js frontend, Docker Compose
-- **Data acquisition:** Databricks Marketplace export → local pipeline (no Databricks at runtime)
+- **Data acquisition:** Databricks Marketplace export → local curation → North Library ingestion (no Databricks at runtime)
+- **North platform pivot:** North Agents and Libraries are the primary agent/retrieval runtime; local retrieval is fallback/scaffold only
 - **Citations UI:** Page + block-level highlight v1; char-level highlight stretch
 - **SME review:** Internal sign-off for v1 launch; external drilling SME before first customer meeting
 - **OCR / scan PDFs:** Command A Plus vision extraction at ingestion time (batch); pdfplumber for native text PDFs

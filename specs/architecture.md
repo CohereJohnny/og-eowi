@@ -1,53 +1,60 @@
 # EOWI Demo — System Architecture
 
-System design for the End-of-Well Intelligence demo: acquisition, ingestion, retrieval, agent loop, and streaming.
+System design for the End-of-Well Intelligence demo after the North platform pivot. North owns the agent runtime and document retrieval; the local app owns the demo UI, secure proxying, and optional fallback behavior.
 
-See [techstack.md](techstack.md) · [datamodel.md](datamodel.md) · [uiux.md](uiux.md)
-
----
-
-## System diagram
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          BROWSER (Next.js App)                          │
-│  ┌──────────────┐  ┌──────────────────┐  ┌──────────────────────────┐  │
-│  │ Chat Input   │  │ Streaming Brief  │  │ Tool-Call Timeline       │  │
-│  └──────┬───────┘  └────────▲─────────┘  └──────────▲───────────────┘  │
-│  ┌──────▼───────────────────┴───────────────────────┴────────────────┐ │
-│  │              PDF Viewer Modal (page + highlight)                  │ │
-│  └────────────────────────────▲──────────────────────────────────────┘ │
-└─────────────────────────────────────────────┬───────────────────────────┘
-                                              │ SSE
-┌─────────────────────────────────────────────▼───────────────────────────┐
-│                       AGENT SERVICE (FastAPI)                           │
-│  ┌─────────────────────────────────────────────────────────────────┐    │
-│  │  Agent Loop (~200 LOC) — Command A, tool-use, citation verify   │    │
-│  └────┬───────────┬────────────┬─────────────┬───────────┬─────────┘    │
-│   search_drill  get_well    get_form    get_offset   read_doc           │
-│   _reports      _header     _ation_tops _wells       _chunks             │
-└───────┬─────────────┬──────────────┬──────────────┬──────────┬──────────┘
-        │             └──────┬───────┘              │          │
-┌───────▼────┐      ┌────────▼─────────┐    ┌───────▼──────────▼────────┐
-│ Hybrid     │      │ DuckDB           │    │ Local PDF store           │
-│ Retrieval  │      │ wells, tops,     │    │ data/curated/pdfs/        │
-│ BM25+Embed │      │ completion, docs │    └───────────────────────────┘
-│ + Rerank   │      └──────────────────┘
-│ LanceDB    │
-└────────────┘
-```
-
-### Design principles
-
-- **Single VM-deployable** — Docker Compose, no Kubernetes
-- **Each tool has one job** — five narrow tools, no fat tools
-- **Hybrid retrieval is non-negotiable** — lexical + semantic + rerank
-- **Citation verification is a hard gate** — before final answer streams
-- **No Databricks at runtime** — local indexes only during demo
+See [techstack.md](techstack.md) · [datamodel.md](datamodel.md) · [uiux.md](uiux.md) · [north-integration.md](north-integration.md)
 
 ---
 
-## Data acquisition
+## System Diagram
+
+```mermaid
+flowchart LR
+    browser["Browser: Next.js Demo UI"] --> nextApi["Next.js API Route"]
+    nextApi --> backendProxy["FastAPI North Proxy"]
+    backendProxy --> northAgent["North Hosted Agent"]
+    northAgent --> northLibrary["North Library"]
+    northLibrary --> northFiles["North Files and My Drive"]
+    backendProxy --> structuredData["Optional Local Structured Data"]
+    northAgent --> groundedAnswer["Grounded Answer and Citations"]
+    groundedAnswer --> backendProxy
+    backendProxy --> nextApi
+    nextApi --> browser
+```
+
+## Design Principles
+
+- **North-first runtime**: the v1 target agent runs on Cohere North, not inside the local FastAPI service.
+- **North-owned retrieval**: PDF ingestion, text extraction, chunking, embedding, indexing, and document retrieval are owned by North Files and Libraries.
+- **Thin local backend**: FastAPI remains as a secure proxy/orchestrator for auth, request shaping, streaming adaptation, local structured tools, and fallback mode.
+- **No low-level retrieval in the demo path**: LanceDB, BM25, and local embedding scripts are no longer the primary path unless North APIs are blocked.
+- **Presenter-ready UI stays local**: the Next.js UI, tool timeline, citation chips, and PDF/citation affordances remain the demo surface.
+
+---
+
+## North API Boundary
+
+North is a REST API at `https://{north-hostname}/api` and requires bearer authentication for programmatic calls. The backend proxy must keep North tokens server-side and must not expose them to the browser.
+
+North platform responsibilities:
+
+- Store uploaded PDFs and related artifacts in My Drive.
+- Create and sync Libraries from existing artifacts or uploaded files.
+- Run the hosted EOWI agent.
+- Retrieve from associated Libraries.
+- Return grounded answers and citation metadata.
+
+Local responsibilities:
+
+- Export and curate the Volve subset before ingestion.
+- Send curated PDFs to North Library ingestion.
+- Store North IDs needed by the demo (`agent_id`, `library_id`, file/artifact IDs).
+- Adapt North responses to the existing UI event shape.
+- Preserve local mock/fallback mode for offline development.
+
+---
+
+## Data Acquisition And Library Ingestion
 
 ### Source
 
@@ -55,234 +62,125 @@ Databricks Marketplace: `/Volumes/equinor_asa_volve_data_village/public/volve`
 
 Registered access (May 2026). Fallback: [data.equinor.com](https://data.equinor.com) via azcopy.
 
-### Export script
+### Local Curation
 
-`scripts/fetch_volve_databricks.py`:
+`scripts/fetch_volve_databricks.py` continues to copy the v1 subset into local storage and preserve source path metadata. The local output becomes a staging area for North Library ingestion, not the final retrieval index.
 
-- Input: `scripts/wells.yaml` (v1 subset: F-11 + 5 offsets)
-- Output: `data/raw/{well_id}/...` preserving source path metadata
-- Idempotent: skip files with matching size + hash
-- Log failures; never abort batch
+### North Library Creation
 
-### Folder mapping
+North supports two library creation paths:
 
-| Databricks | Purpose |
-|---|---|
-| `Reports/` | DDR, EOWR, completion PDFs |
-| `Well_Logs/` | Formation tops |
-| `Well_technical_data/` | Headers, completion |
+- Create a library from existing My Drive artifacts with `POST /v1/libraries`.
+- Create a library from uploaded files with `POST /v1/libraries/jobs`, then poll `GET /v1/libraries/jobs/{job_id}` until the job completes and returns a `library_id`.
 
-### Parallel dev strategy (Week 0)
+Sprint 3 should use the upload-job path for curated demo PDFs unless the files already exist in My Drive.
 
-While export runs, build agent/UI against **mock chunks** (hand-crafted or sample extracts). Swap real index when ingestion completes.
+### Ingestion Success Criteria
 
----
-
-## Ingestion pipeline
-
-```
-raw PDFs → text + layout extraction → section parsing → chunking → enrichment → embedding → indexing
-```
-
-Each stage: separate script, idempotent, checkpointed, output persisted to disk.
-
-### Stage 1: Text + layout extraction
-
-**Path selection (automatic per document):**
-
-1. **Native text PDF** → `pdfplumber` (primary) — preserves char bboxes, page numbers, layout blocks
-2. **Image/scan PDF** → **Command A Plus vision** (`command-a-plus-05-2026`) — batch ingestion only
-
-**Vision extraction flow:**
-
-```
-PDF page → render to image → Command A Plus vision prompt → structured text + layout blocks
-```
-
-Vision prompt returns page text and block bboxes equivalent to pdfplumber output schema. Store with `extraction_method='vision'`, `quality_flag='vision_extracted'`.
-
-**Fallback:** PyMuPDF for simple text PDFs if pdfplumber fails.
-
-**Output per document** (`data/extracted/{doc_id}.json`):
-
-```json
-{
-  "doc_id": "...",
-  "extraction_method": "pdfplumber | vision",
-  "pages": [
-    {
-      "page_no": 1,
-      "text": "...",
-      "char_bboxes": [["c", x0, y0, x1, y1]],
-      "layout_blocks": [{"bbox": [], "text": "...", "type": "heading|paragraph|table"}]
-    }
-  ]
-}
-```
-
-**Spike (day one):** Prototype bbox coordinate conversion for PDF viewer — see [uiux.md](uiux.md).
-
-### Stage 2: Section parsing
-
-DDR sections:
-
-```python
-DDR_SECTIONS = [
-    "header", "operations_summary", "problems_encountered",
-    "npt_breakdown", "next_24h_plan", "mud_properties",
-    "bha_description", "depth_progress", "personnel_on_board",
-]
-```
-
-EOWR: executive summary, drilling summary, formations encountered, completion summary, NPT analysis, lessons learned.
-
-Parsing: heading regex + layout heuristics. On failure → whole-page chunks with `quality_flag='partial'`.
-
-### Stage 3: Chunking
-
-~500 tokens, ~50 token overlap, sentence boundaries, never split mid-table.
-
-`section_path` example: `"DDR 2008-04-15 > Problems Encountered"`
-
-### Stage 4: Enrichment
-
-Regex extract: depth ranges, NPT codes, date references → chunk metadata for tool filters.
-
-### Stage 5: Embedding
-
-Cohere Embed v4, `input_type=search_document`, text = `{section_path}\n\n{chunk_text}`
-
-### Stage 6: Indexing
-
-Write LanceDB embeddings, build BM25, persist DuckDB → `data/index/`
-
-### Ingestion success criteria
-
-- [ ] Every v1 demo well has ≥1 DDR and ≥1 EOWR indexed
-- [ ] Spot-check 20 chunks: section_path correct, text clean, pages correct
-- [ ] "stuck pipe" query returns "Problems Encountered" sections
-- [ ] Citation roundtrip: chunk_id → PDF page + bbox
+- [ ] Curated F-11 demo documents can be uploaded or attached to a North Library.
+- [ ] North returns a completed library job with a stable `library_id`.
+- [ ] Failed files are visible through job status or library status fields.
+- [ ] The created library can be associated with the EOWI North agent.
+- [ ] The demo can ask a question and receive grounded citations from North.
 
 ---
 
-## Retrieval pipeline
+## Retrieval Pipeline
 
+Primary retrieval path:
+
+```mermaid
+flowchart LR
+    userQuestion["User Question"] --> northAgent["North Hosted Agent"]
+    northAgent --> northLibrary["Associated North Library"]
+    northLibrary --> retrieval["North Retrieval"]
+    retrieval --> citations["Citation Metadata"]
+    citations --> answer["Grounded Engineering Brief"]
 ```
-query → parallel(BM25 top-50, Embed top-50)
-      → merge + dedupe (top 80)
-      → Rerank 3.5 (top 8)
-      → return to agent with metadata
-```
 
-Prefilter LanceDB on `well_id` and `doc_type` when tool params provide them.
+The local app no longer builds or owns retrieval chunks, embeddings, LanceDB tables, or BM25 indexes for the primary demo path. North Libraries provide the indexed retrieval substrate.
 
-**Why all three stages:** BM25 catches identifiers; embeddings catch semantics; rerank makes citations precise.
+Fallback retrieval path:
+
+- Local mock corpus and deterministic retrieval may remain for CI, offline demos, and development when North credentials are unavailable.
+- Fallback responses must be clearly treated as mock/local mode.
 
 ---
 
-## Agent architecture
+## Agent Architecture
 
-### Model
+### North Hosted Agent
 
-Primary: `command-a-03-2025` (or latest Command A). Fallback: `command-r-plus-08-2024`.
+The EOWI agent should be created and configured in North with:
 
-### Tool definitions
+- A drilling-specific name and description.
+- A preamble that preserves the existing engineering answer policy.
+- The selected North model for agent reasoning.
+- A North Library tool or hosted tool configuration that points to the EOWI Library.
+- Optional custom function tools for structured well metadata if North custom tools are available and suitable.
 
-Five tools — schemas unchanged from [eowi-demo-spec.md](eowi-demo-spec.md) §8.2:
+### FastAPI Proxy
 
-1. `search_drilling_reports` — hybrid retrieval over narrative reports
-2. `get_well_header` — DuckDB well master
-3. `get_formation_tops` — DuckDB stratigraphy
-4. `get_offset_wells` — formation overlap query
-5. `read_document_chunks` — fetch by chunk_id
+FastAPI remains in the runtime, but its role changes:
 
-### System prompt
+- Accept the existing frontend `/chat` request shape.
+- Attach North authentication server-side.
+- Call the North-hosted agent.
+- Adapt North events/responses into the current SSE stream used by the UI.
+- Optionally serve local structured-data tools or fallback answers.
+- Hide North-specific auth and instance configuration from the browser.
 
-Canonical prompt enforces:
+### Structured Data
 
-- Ground every claim in retrieved evidence
-- Cite at chunk level `[chunk_id]`
-- Search before answering operational questions
-- Structured tools before search where applicable
-- Explicit confidence labels
-- Distinguish engineering judgment from quotation
-- Structured output template (Summary, Key Findings, Caveats, Follow-ups)
-- Precise drilling vocabulary; no marketing language
-
-Full text: [eowi-demo-spec.md](eowi-demo-spec.md) §8.3 (unchanged).
-
-### Agent loop
-
-```
-user query → chat with tools → stream thinking
-  → if tool_calls: execute, cache chunks, stream timeline
-  → if no tool_calls: verify citations
-      → if ok: stream final
-      → if fail: correction pass (internal, max 8 iterations)
-```
-
-**Session continuity:** `messages[]` persists within browser session for Q1→Q2 demo. No refinement UI in v1.
-
-Future: Cohere memory capabilities — see [roadmap.md](roadmap.md).
-
-### Citation verification (v1)
-
-1. Extract `[chunk_id]` markers from answer
-2. Verify each id exists in retrieved chunk cache
-3. Verify each id exists in database
-4. On failure → force correction pass (never shown to user)
-
-v2 stretch: semantic overlap check between claim and chunk text.
+Formation tops, well headers, and offset well metadata may remain local until North tool/function support is validated. If North-hosted agents can call custom function tools for these records, Sprint 3 should move structured tools behind North as well.
 
 ---
 
-## Streaming (backend → frontend)
+## Streaming And UI Contract
 
-SSE event types:
+The existing UI expects SSE events:
 
 | Type | Payload |
 |---|---|
-| `thinking` | Model reasoning text |
-| `tool_call` | name, params |
-| `tool_result` | name, summary |
-| `final` | verified brief text |
-| `warning` | max iterations exceeded |
+| `thinking` | Agent progress or planning text |
+| `tool_call` | Tool name and params |
+| `tool_result` | Tool result summary |
+| `final` | Final verified brief text and source citations |
+| `warning` | Recoverable issue |
 
-Next.js API route proxies SSE to browser. See [uiux.md](uiux.md).
+Sprint 3 must map North chat/agent events into this UI contract or update the UI contract explicitly. The preferred path is adapter compatibility so the current demo UI remains stable.
 
 ---
 
-## Project structure
+## Project Structure
 
-```
+```text
 og-eowi/
 ├── docker-compose.yml
-├── data/                    # gitignored
+├── data/                    # local staging and fallback data
 ├── scripts/
 │   ├── fetch_volve_databricks.py
-│   ├── extract_text.py      # pdfplumber + vision path
-│   ├── parse_sections.py
-│   ├── chunk_and_enrich.py
-│   ├── embed_and_index.py
-│   ├── load_structured.py
+│   ├── north_library_ingest.py      # planned Sprint 3
 │   └── wells.yaml
 ├── backend/
-│   └── app/                 # FastAPI: agent, tools, retrieval, verification
-├── frontend/                # Next.js: UI, SSE proxy, PDF viewer
+│   └── app/                 # FastAPI proxy + fallback mode
+├── frontend/                # Next.js UI, SSE proxy, PDF/citation UI
 └── eval/
     └── questions.yaml
 ```
 
+Existing local indexing scripts remain historical scaffolding until either removed or repurposed as fallback tooling.
+
 ---
 
-## Build phases
+## Build Phases
 
-| Phase | Week | Deliverable |
-|---|---|---|
-| 1 — Data foundation | 1 | Export, curation, extraction for F-11 |
-| 2 — Indexing + retrieval | 1.5 | Indexes populated; CLI retrieve works |
-| 3 — Agent + verification | 2 | Five tools, agent loop, citation verify |
-| 4 — UI | 2.5–3.5 | Streaming, chips, PDF viewer, timeline |
-| 5 — Polish + eval | 4 | Eval harness, dry runs, recorded fallback |
+| Phase | Deliverable |
+|---|---|
+| Sprint 1 | Local demo foundation, mock corpus, CI, pnpm/uv tooling |
+| Sprint 2 | North platform pivot specs, API contract research, go/no-go checklist |
+| Sprint 3 | North Library ingestion, North-hosted agent, backend proxy integration |
+| Sprint 4 | UI adaptation for North citations and streaming semantics |
+| Sprint 5 | Eval, dry runs, fallback story, internal review |
 
 See [prd.md](prd.md) success criteria and [demoguide.md](demoguide.md) rehearsal checklist.
