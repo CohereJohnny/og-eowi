@@ -53,3 +53,33 @@ class ChatRequest(BaseModel):
     message: str
     session_id: str = "demo"
     well_id: str | None = "15/9-F-11"
+
+
+class NorthSettingsRequest(BaseModel):
+    base_url: str | None = None
+    bearer_token: str | None = None
+    agent_id: str | None = None
+    library_id: str | None = None
+    mode: Literal["auto", "north", "local"] | None = None
+
+
+class NorthStatus(BaseModel):
+    mode: Literal["auto", "north", "local"]
+    active_mode: Literal["north", "local"]
+    base_url: str
+    token_configured: bool
+    agent_id: str | None = None
+    library_id: str | None = None
+    north_ready: bool
+    source: Literal["env", "runtime"]
+    message: str
+
+
+class NorthCitationSource(BaseModel):
+    chunk_id: str
+    doc_id: str
+    page_start: int = 1
+    page_end: int = 1
+    section_path: str
+    chunk_text: str
+    bbox: list[float] = Field(default_factory=lambda: [96, 210, 520, 318])
