@@ -25,60 +25,60 @@ Satisfies: FR-10 (data path), NFR-3.
 
 ---
 
-### US-1.2 — Extract text from native PDFs (v1)
+### US-1.2 — Curate demo PDFs for North ingestion (v1)
 
-**As** the ingestion pipeline, **I want** pdfplumber to extract text and layout bboxes from text-native PDFs, **so that** chunks have page-accurate highlight coordinates.
+**As** Alex the Presenter (P-5), **I want** the exported Volve documents curated into a demo-ready file set, **so that** only relevant F-11 and offset-well artifacts are uploaded to North.
 
 **Acceptance criteria:**
 
-- AC-1: Output JSON includes `char_bboxes` and `layout_blocks` per page
-- AC-2: Documents tagged `extraction_method=pdfplumber`, `quality_flag=good`
-- AC-3: Failed extraction falls back to PyMuPDF or flags `failed`
+- AC-1: Curated files are tagged with well id, document type, source path, and demo-critical status
+- AC-2: F-11 demo-critical documents are identifiable before upload
+- AC-3: The local manifest can map curated files to North artifact IDs after ingestion
 
 Satisfies: FR-10.
 
 ---
 
-### US-1.3 — Extract text from scan PDFs via vision (v1)
+### US-1.3 — Create North Library from curated documents (v1)
 
-**As** the ingestion pipeline, **I want** Command A Plus to extract text and layout from image-only PDFs at batch time, **so that** scan DDRs are searchable without a separate OCR toolchain.
+**As** Alex the Presenter (P-5), **I want** a North Library created from the curated Volve files, **so that** North owns document storage, sync, indexing, and retrieval.
 
 **Acceptance criteria:**
 
-- AC-1: Scan PDFs detected and routed to vision path automatically
-- AC-2: Uses `command-a-plus-05-2026`; **no vision calls at query time**
-- AC-3: Output matches pdfplumber JSON schema
-- AC-4: Documents tagged `extraction_method=vision`, `quality_flag=vision_extracted`
+- AC-1: New files can be uploaded through the North Library job flow
+- AC-2: Existing My Drive artifacts can be attached through North Library creation when available
+- AC-3: Library job status is polled until completed or failed
+- AC-4: The resulting `library_id` is recorded for the runtime agent
 
 Satisfies: FR-10.
 
 ---
 
-### US-1.4 — Parse DDR and EOWR sections (v1)
+### US-1.4 — Validate North Library sync status (v1)
 
-**As** the retrieval system, **I want** DDRs parsed into named sections, **so that** "stuck pipe" queries return "Problems Encountered" chunks.
+**As** Alex the Presenter (P-5), **I want** file-level Library sync status, **so that** the demo does not depend on partially indexed or failed documents.
 
 **Acceptance criteria:**
 
-- AC-1: DDR sections extracted per architecture spec
-- AC-2: EOWR sections extracted with analogous parser
-- AC-3: Parse failure → whole-page chunks with `quality_flag=partial`
-- AC-4: `section_path` populated on every chunk
+- AC-1: Total, indexed, and failed file counts are visible
+- AC-2: Failed demo-critical files block demo-ready status
+- AC-3: Non-critical failures are logged with file id and error
+- AC-4: Library status is represented in local configuration or validation output
 
 Satisfies: FR-3.
 
 ---
 
-### US-1.5 — Index v1 well corpus (v1)
+### US-1.5 — Associate North Library with North agent (v1)
 
-**As** Alex the Presenter (P-5), **I want** F-11 and five offset wells fully indexed, **so that** the demo and core eval questions work.
+**As** Alex the Presenter (P-5), **I want** the EOWI North agent associated with the Volve Library, **so that** scripted demo questions retrieve from the correct corpus.
 
 **Acceptance criteria:**
 
-- AC-1: F-11, F-1, F-4, F-7, F-10, F-14 each have ≥1 DDR and ≥1 EOWR
-- AC-2: LanceDB, BM25, and DuckDB populated under `data/index/`
-- AC-3: `manifest.json` tags `demo_critical` documents
-- AC-4: Ingestion checklist in [architecture.md](architecture.md) passes
+- AC-1: The active North agent has access to the active `library_id`
+- AC-2: The agent can answer at least one F-11 demo question using Library-grounded evidence
+- AC-3: Returned citations map to North artifacts or local document registry entries
+- AC-4: Local LanceDB/BM25/DuckDB retrieval is not required for the primary North path
 
 Satisfies: FR-3, G-6.
 
@@ -86,16 +86,16 @@ Satisfies: FR-3, G-6.
 
 ## Epic 2 — Retrieval
 
-### US-2.1 — Hybrid search with rerank (v1)
+### US-2.1 — North Library retrieval with grounded citations (v1)
 
-**As** the agent, **I want** hybrid BM25 + embedding search reranked to top-8 chunks, **so that** citations are precise enough for executive trust.
+**As** the agent, **I want** to retrieve from the North Library with grounded citations, **so that** citations are precise enough for executive trust without maintaining a local retrieval stack.
 
 **Acceptance criteria:**
 
-- AC-1: Parallel BM25 top-50 and Embed top-50
-- AC-2: Merge dedupe to 80; Rerank 3.5 to 8
-- AC-3: Prefilter on well_id and doc_type when provided
-- AC-4: CLI `retrieve.py` passes eyeball test on 10 sample queries
+- AC-1: North retrieval returns relevant evidence for scripted F-11 questions
+- AC-2: Citation payloads include enough source metadata for display in the UI
+- AC-3: The backend proxy adapts North responses to the existing frontend citation contract or defines a replacement contract
+- AC-4: Local retrieval remains available only as fallback/mock mode
 
 Satisfies: FR-3.
 
@@ -103,9 +103,9 @@ Satisfies: FR-3.
 
 ## Epic 3 — Agent & citations
 
-### US-3.1 — Ask a drilling question (v1)
+### US-3.1 — Ask a drilling question through North agent (v1)
 
-**As** Derek the Drilling VP (P-1), **I want** to type a natural-language question about well F-11, **so that** I get a structured engineering briefing without reading thousands of PDFs.
+**As** Derek the Drilling VP (P-1), **I want** to type a natural-language question about well F-11 and have it answered by the North-hosted EOWI agent, **so that** I get a structured engineering briefing without reading thousands of PDFs.
 
 **Acceptance criteria:**
 
@@ -117,29 +117,29 @@ Satisfies: FR-1, FR-4, NFR-1.
 
 ---
 
-### US-3.2 — Follow up in same session (v1)
+### US-3.2 — Follow up in same North-backed session (v1)
 
 **As** Derek (P-1), **I want** to ask a follow-up question that references the prior answer, **so that** I see the agent reason causally across turns.
 
 **Acceptance criteria:**
 
 - AC-1: Demo script Q2 works without re-stating Q1 context
-- AC-2: Backend passes chat history to agent
+- AC-2: Backend proxy preserves session context when calling North
 - AC-3: No refinement UI required ("redo excluding F-15" remains out of scope)
 
 Satisfies: FR-9.
 
 ---
 
-### US-3.3 — Verify citations before response (v1)
+### US-3.3 — Preserve North citations before response (v1)
 
-**As** Elena the Subsurface Lead (P-4), **I want** every citation to resolve to a real retrieved chunk, **so that** I trust the briefing is not hallucinated.
+**As** Elena the Subsurface Lead (P-4), **I want** every citation to resolve to a real North Library source, **so that** I trust the briefing is not hallucinated.
 
 **Acceptance criteria:**
 
-- AC-1: Citation verification runs before final stream
-- AC-2: Invalid citations trigger internal retry — never shown to user
-- AC-3: Eval harness confirms 100% chunk_id validity on category-1 questions
+- AC-1: Citation payloads resolve to a North artifact or local document registry mapping
+- AC-2: Missing citation metadata is surfaced as a warning or fallback UI state
+- AC-3: Eval harness confirms 100% visible citation resolvability on category-1 questions
 
 Satisfies: FR-5.
 
@@ -153,7 +153,7 @@ Satisfies: FR-5.
 
 - AC-1: Q2 produces per-issue classification with confidence
 - AC-2: Judgments labeled "Engineering judgment based on:" with evidence
-- AC-3: Each classification cites supporting chunks
+- AC-3: Each classification cites supporting source evidence
 
 Satisfies: FR-4, FR-7. Demo aha moment — [demoguide.md](demoguide.md) §2.4.
 

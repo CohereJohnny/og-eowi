@@ -8,10 +8,10 @@ This document captures what v1 deliberately does **not** include, and the planne
 
 | Limitation | v1 state | Future plan |
 |---|---|---|
-| Well corpus | F-11 + 5 offsets (F-1, F-4, F-7, F-10, F-14) | Index remaining wells from [wells.yaml](../scripts/wells.yaml) (full 17-well list) |
-| Field-campaign questions | Partial — agent must acknowledge coverage gaps | Full field index enables campaign-wide NPT and formation queries |
+| Well corpus | F-11 + 5 offsets (F-1, F-4, F-7, F-10, F-14) | Add remaining wells to the North Library from [wells.yaml](../scripts/wells.yaml) (full 17-well list) |
+| Field-campaign questions | Partial — agent must acknowledge coverage gaps | Full field Library enables campaign-wide NPT and formation queries |
 | Document types | DDR, EOWR, completion reports, formation tops | Seismic, production, WITSML, reservoir models deferred |
-| Databricks at runtime | Not used — data exported locally once | Optional: pre-build indexes on Databricks (Option B acquisition) for faster refresh |
+| Databricks at runtime | Not used — data exported locally once | Optional: automate refresh from Databricks into North Library ingestion |
 
 ### Product & UX
 
@@ -29,8 +29,8 @@ This document captures what v1 deliberately does **not** include, and the planne
 | Limitation | v1 state | Future plan |
 |---|---|---|
 | PDF highlight fidelity | Page + paragraph block-level bbox | Char-level highlight with precise coordinate conversion |
-| Citation verification | chunk_id existence check | Semantic overlap / embedding similarity check |
-| OCR quality on tables | Vision extraction; table reading order may be imperfect | Table-aware vision prompts; dedicated table parser |
+| Citation verification | Source-resolvable North citation mapping | Semantic overlap or adjudication checks when payloads support it |
+| OCR quality on tables | North Library extraction quality to be validated | Table-specific enrichment if North extraction is insufficient |
 
 ### Validation
 
@@ -53,10 +53,10 @@ This document captures what v1 deliberately does **not** include, and the planne
 
 - [ ] Cohere memory integration for persistent session context
 - [ ] Multi-turn refinement commands
-- [ ] Cohere Compass evaluation as LanceDB+BM25 replacement
+- [ ] North Library tuning and multi-library organization
 - [ ] Snowflake-backed structured store (DuckDB schema is portable)
 - [ ] MCP adapters for production data sources (OpenWells, EDM, OSDU)
-- [ ] Pre-build indexes on Databricks; export artifacts to local demo bundle
+- [ ] Automated Databricks-to-North Library refresh
 
 ### Long-term
 

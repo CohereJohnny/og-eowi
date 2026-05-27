@@ -8,13 +8,13 @@
 
 ## Pre-demo setup
 
-1. Start Docker Compose: `docker compose up` (backend + frontend + local data volume)
-2. Verify Cohere API key in `.env`
-3. Pre-warm: submit a throwaway query on app load to establish API connection
-4. Confirm F-11 indexed: well selector shows `15/9-F-11`
+1. Start Docker Compose: `docker compose up` (backend + frontend proxy)
+2. Verify North configuration in `.env`
+3. Pre-warm: submit a throwaway query on app load to establish North API connection
+4. Confirm active North Library or fallback corpus includes `15/9-F-11`
 5. Have recorded canonical run ready as fallback (disclosed honestly if live API fails)
 
-**Cold-laptop criterion:** Presenter can complete setup on a machine that has never run the demo before, using only README + Docker Compose + `.env` with API key.
+**Cold-laptop criterion:** Presenter can complete setup on a machine that has never run the demo before, using only README + Docker Compose + `.env` with North credentials.
 
 ---
 
@@ -38,7 +38,7 @@
 
 **On screen:**
 
-- Tool-call timeline: `search_drilling_reports(...)`, `get_formation_tops(...)`, `get_well_header(...)`, `rerank_results(...)`, `read_document_chunks(...)`
+- Tool-call timeline: North Library retrieval plus any structured-data calls for formation tops and well headers
 - Main panel streams reasoning summary, then final brief
 - Output: three-point briefing, severity tags, evidence basis, 2–4 citation chips per finding
 
@@ -72,11 +72,11 @@ Architecture slide. Left: demo as shown. Right: same agent, adapters relabeled.
 
 | Demo tool | Production adapter |
 |---|---|
-| `search_drilling_reports` | OpenWells + DDR SharePoint + unstructured archive |
+| North Library retrieval | OpenWells + DDR SharePoint + unstructured archive |
 | `get_well_header` | EDM / corporate well master |
 | `get_formation_tops` | Subsurface DB / Petrel / OSDU |
 | `get_offset_wells` | Asset portfolio / OSDU spatial index |
-| `read_document_chunks` | Enterprise search / DMS |
+| Source citation lookup | Enterprise search / DMS |
 
 > "We don't need you to consolidate your data estate first. The agent gets value from what's connected today and grows from there."
 

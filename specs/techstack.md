@@ -8,54 +8,59 @@ See [architecture.md](architecture.md) for how components connect.
 
 ```mermaid
 flowchart LR
-    Browser["Browser"] -->|HTTPS / SSE| Next["Next.js 14 (UI)"]
-    Next -->|SSE proxy| FastAPI["FastAPI (Agent + Retrieval)"]
-    FastAPI -->|Chat + Tools| Cohere["Cohere API"]
-    FastAPI --> DuckDB[("DuckDB")]
-    FastAPI --> Lance["LanceDB"]
-    FastAPI --> BM25["bm25s (in-process)"]
-    FastAPI --> PDFs[("Local PDF store")]
-    Ingest["Ingestion scripts (Python)"] --> DuckDB
-    Ingest --> Lance
-    Ingest --> BM25
-    Ingest -->|vision batch| CohereVision["Cohere Command A Plus"]
-    Databricks["Databricks Marketplace export"] -->|one-time copy| Ingest
+    browser["Browser"] -->|HTTPS_SSE| nextApp["Next.js UI"]
+    nextApp -->|SSE proxy| fastApi["FastAPI North Proxy"]
+    fastApi -->|REST| northApi["Cohere North API"]
+    northApi --> northAgent["North Agent"]
+    northAgent --> northLibrary["North Library"]
+    northLibrary --> northFiles["North Files and My Drive"]
+    fastApi --> fallback["Local Mock Fallback"]
+    databricks["Databricks Marketplace export"] --> staging["Local Curation Staging"]
+    staging --> northFiles
 ```
 
-Two-process runtime: **Next.js** (UI) + **FastAPI** (agent, retrieval, tools). Python owns ingestion, indexing, and agent loop because the data pipeline and Cohere Python SDK are mature for this workload.
+Two-process local runtime remains **Next.js** (UI) + **FastAPI** (North proxy), but the primary agent and retrieval runtime moves to **Cohere North**.
+
+## Cohere North Platform
+
+| Component | Choice | Rationale |
+|---|---|---|
+| Agent runtime | North Agents | Hosted agent runtime for reasoning, tool use, and library-grounded responses |
+| Document ingestion | North Files / My Drive | Stores curated PDFs and files before Library sync |
+| Retrieval substrate | North Libraries | Handles document sync, extraction, chunking, embedding, indexing, and retrieval |
+| API access | North REST API | Programmatic access to agents, libraries, files, and chat through bearer-authenticated calls |
+| Auth boundary | FastAPI proxy | Keeps North tokens server-side and preserves the current frontend contract |
 
 ## LLM & Cohere models
 
 | Role | Model | Notes |
 |---|---|---|
-| Agent reasoning + tool use | `command-a-03-2025` (or latest Command A at build time) | Primary demo model |
-| Vision PDF extraction | `command-a-plus-05-2026` | Batch ingestion only — scan/image PDFs |
-| Embeddings | `embed-v4.0` (1024-dim) | `search_document` for index; `search_query` for retrieval |
-| Reranking | `rerank-v3.5` | Top-80 merged → top-8 |
-| Cost-controlled fallback | `command-r-plus-08-2024` | Dev/eval runs |
+| North agent reasoning + tool use | North-supported Command A family model | Primary demo model configured on the hosted agent |
+| PDF/document retrieval | North Libraries | Model and indexing details are platform-managed |
+| Local fallback | Existing mock corpus and deterministic backend path | Dev/CI/offline mode only |
 
 **Why Command A:** Tool-use is first-class; strong grounded RAG; Cohere-native story for the demo.
 
-**Why Command A Plus for vision:** Scan/image Volve DDRs (~20% of corpus) need OCR. Vision extraction at ingestion produces structured text + layout blocks without a separate Tesseract pipeline. **Not called at query time** — extracted text is indexed like native PDF text.
+**Why North Libraries:** North absorbs the low-level document retrieval work that would otherwise require local chunking, embedding, LanceDB, BM25, and rerank orchestration.
 
 ## Retrieval & storage
 
 | Component | Choice | Rationale |
 |---|---|---|
-| Vector DB | LanceDB | Embedded, no separate service, HNSW default |
-| BM25 | bm25s | In-process Python, lightweight |
-| Structured DB | DuckDB | Single-file, zero-install, SQL portable to Postgres/Snowflake |
-| Source PDFs | Local filesystem | `data/curated/pdfs/{doc_id}.pdf` |
+| Primary document store | North Files / My Drive | Stores uploaded Volve PDFs and artifacts |
+| Primary retrieval index | North Libraries | Platform-managed extraction, sync, indexing, and retrieval |
+| Structured metadata | Local JSON/DuckDB fallback until North tools are validated | Well headers, formation tops, and offsets may remain local temporarily |
+| Source PDFs | North Files plus optional local curated copies | North is source of truth for retrieval; local copies support fallback and presenter inspection |
+| Local vector/BM25 stack | Deprecated from primary path | Retained only as scaffold/fallback while North integration is developed |
 
 ## Backend
 
 | Component | Choice | Rationale |
 |---|---|---|
-| Agent service | FastAPI + Uvicorn | Async, SSE streaming, ~200 LOC hand-rolled agent loop |
-| Agent framework | **None** | Five tools + linear loop; frameworks add demo debug surface |
-| PDF text extraction | pdfplumber (primary) | Preserves char bboxes and layout for highlights |
-| PDF fallback parser | PyMuPDF | Secondary text path |
-| Vision extraction | Command A Plus via Cohere SDK | Scan PDFs at ingestion — see [architecture.md](architecture.md#stage-1-text--layout-extraction) |
+| Backend service | FastAPI + Uvicorn | Thin proxy/orchestrator for North auth, request shaping, streaming adaptation, and fallback mode |
+| North client | REST API initially; SDK acceptable if it improves auth and streaming handling | Keeps implementation close to documented API contracts |
+| Local agent loop | Fallback only | Useful for offline demos and CI, not the primary runtime |
+| Structured tools | Local or North function tools | Final placement depends on North custom tool support validation |
 
 ## Frontend
 
@@ -64,23 +69,24 @@ Two-process runtime: **Next.js** (UI) + **FastAPI** (agent, retrieval, tools). P
 | Framework | Next.js 14 App Router | Matches project conventions; RSC + streaming |
 | Styling | TailwindCSS + shadcn/ui | Enterprise engineering aesthetic |
 | PDF viewer | react-pdf (pdfjs-dist) | De-facto standard; bbox overlay support |
-| Streaming | SSE via API route proxy | Tool timeline + brief streaming |
+| Streaming | SSE via API route proxy | Preserves current tool timeline + brief streaming while backend adapts North events |
 
 ## Data acquisition
 
 | Component | Choice | Rationale |
 |---|---|---|
 | Primary source | Databricks Marketplace volume `/Volumes/equinor_asa_volve_data_village/public/volve` | Registered access |
-| Export | `scripts/fetch_volve_databricks.py` | Copy Option B subset to `data/raw/` |
+| Export | `scripts/fetch_volve_databricks.py` | Copy Option B subset to local staging before North upload |
+| North ingestion | `POST /v1/libraries/jobs` or `POST /v1/libraries` | Upload files into a new Library or attach existing My Drive artifacts |
 | Fallback source | data.equinor.com + azcopy | If Databricks export fails |
 
-**Runtime:** No Databricks dependency during demo.
+**Runtime:** No Databricks dependency during demo. North Library and hosted agent availability become runtime dependencies unless fallback mode is enabled.
 
 ## Deployment
 
 | Component | Choice | Rationale |
 |---|---|---|
-| Local / demo | Docker Compose | Cold-laptop criterion; backend + frontend + data volume |
+| Local / demo | Docker Compose | Runs frontend and proxy locally; North agent/library run on Cohere North |
 | Optional cloud | Vercel (frontend) + Fly.io / Railway (backend) | Post-v1 if needed |
 
 ## Deliberately NOT in the stack
@@ -88,29 +94,31 @@ Two-process runtime: **Next.js** (UI) + **FastAPI** (agent, retrieval, tools). P
 | Rejected | Why |
 |---|---|
 | LangChain / LlamaIndex / CrewAI / LangGraph | Overhead for 5 tools + linear loop |
-| Pinecone / Weaviate / Qdrant | Extra service, no demo benefit |
-| Postgres (v1) | DuckDB sufficient; portable later |
+| Pinecone / Weaviate / Qdrant | North Libraries own retrieval |
+| LanceDB / bm25s as primary runtime | Replaced by North Libraries |
+| Postgres (v1) | Structured metadata can remain local until North tool strategy is validated |
 | Snowflake (v1) | Scale story on bridge slide only |
-| ocrmypdf / Tesseract (v1) | Replaced by Command A Plus vision extraction |
+| ocrmypdf / Tesseract (v1) | North Library ingestion is preferred; local OCR becomes fallback only |
 | Authentication (v1) | Controlled demo environments only |
 | Kubernetes | Single VM deployable requirement |
 
 ## Environment variables
 
 ```bash
-COHERE_API_KEY=           # Required at runtime
-COHERE_AGENT_MODEL=command-a-03-2025
-COHERE_VISION_MODEL=command-a-plus-05-2026
-DATA_DIR=./data             # Mounted in Docker Compose
+NORTH_BASE_URL=https://demo.north.cohere.com/api
+NORTH_BEARER_TOKEN=         # server-side only; never expose to browser storage
+NORTH_AGENT_ID=             # created North agent
+NORTH_LIBRARY_ID=           # created EOWI document library
+DATA_DIR=./data             # local staging and fallback data
 ```
 
 ## Two-service rationale
 
-Python backend exists because:
+The Python backend remains because:
 
-1. Ingestion pipeline is Python-native (pdfplumber, LanceDB, DuckDB, bm25s)
-2. Agent loop and retrieval share the same process as index readers
-3. Cohere Python SDK is mature for chat + embed + rerank + vision
-4. Next.js stays thin — streaming UI, PDF viewer, citation chips only
+1. North tokens must stay server-side.
+2. The current UI expects a stable SSE endpoint.
+3. North event/citation payloads may need adaptation before reaching the browser.
+4. Local fallback mode and structured-data helpers still benefit from Python.
 
 Collapsing to Next.js-only runtime is roadmap — see [roadmap.md](roadmap.md).

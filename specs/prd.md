@@ -80,11 +80,11 @@ See [roadmap.md](roadmap.md) for full deferred list.
 
 ---
 
-### FR-3: Hybrid retrieval
+### FR-3: North Library retrieval
 
-**Requirement:** Retrieve from Volve document corpus using BM25 + Embed v4, merged and reranked with Rerank 3.5.
+**Requirement:** Retrieve from the Volve document corpus through North Libraries, with North owning document ingestion, indexing, retrieval, and grounding.
 
-**Acceptance:** Sample queries return chunks from appropriate `section_path` (e.g., "stuck pipe" → "Problems Encountered").
+**Acceptance:** Sample queries return relevant grounded evidence from the active North Library, and the response includes citation metadata that can be resolved in the UI.
 
 ---
 
@@ -96,11 +96,11 @@ See [roadmap.md](roadmap.md) for full deferred list.
 
 ---
 
-### FR-5: Chunk-level citations
+### FR-5: Source-resolvable citations
 
-**Requirement:** Every factual claim followed by `[chunk_id]` markers. Citations verified before response ships.
+**Requirement:** Every factual claim includes a citation that resolves to a real North Library source or a mapped local document registry entry.
 
-**Acceptance:** No citation resolves to a chunk_id outside the retrieved set. Verification failures trigger internal retry (never shown to user).
+**Acceptance:** No visible citation points to an unknown source. Missing page/highlight metadata is handled with a clear source preview or warning state.
 
 ---
 
@@ -122,9 +122,9 @@ See [roadmap.md](roadmap.md) for full deferred list.
 
 ### FR-8: Structured data tools
 
-**Requirement:** Five agent tools: `search_drilling_reports`, `get_well_header`, `get_formation_tops`, `get_offset_wells`, `read_document_chunks`.
+**Requirement:** The agent must be able to retrieve authoritative structured well data for well headers, formation tops, and offset-well context.
 
-**Acceptance:** Tool schemas match [architecture.md](architecture.md#tool-definitions).
+**Acceptance:** Structured data is available either through North-hosted function tools or through the FastAPI proxy fallback path described in [architecture.md](architecture.md#structured-data).
 
 ---
 
@@ -136,11 +136,11 @@ See [roadmap.md](roadmap.md) for full deferred list.
 
 ---
 
-### FR-10: Vision-based PDF extraction
+### FR-10: North Library document ingestion
 
-**Requirement:** Image-only / scan PDFs extracted at ingestion using Command A Plus (`command-a-plus-05-2026`) visual understanding. Native text PDFs use pdfplumber first.
+**Requirement:** Curated Volve PDFs are ingested into a North Library for platform-managed extraction, indexing, and retrieval.
 
-**Acceptance:** Scan PDFs indexed with `quality_flag='vision_extracted'`. Ingestion is batch-only — no vision calls at query time.
+**Acceptance:** The active North Library reaches a completed/usable state with no failed demo-critical documents.
 
 ---
 
