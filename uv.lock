@@ -227,7 +227,7 @@ wheels = [
 
 [[package]]
 name = "cohere"
-version = "7.0.0"
+version = "7.0.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fastavro" },
@@ -239,9 +239,9 @@ dependencies = [
     { name = "types-requests" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e6/90/0e4f7591dce5743690f4b7656e7aeadd713691ebaae77a08542481e325aa/cohere-7.0.0.tar.gz", hash = "sha256:88ca34c91e634a64227f3eaa599d1af364b9d7bbc9336af93473fdced355617d", size = 208566, upload-time = "2026-05-22T18:48:47.982Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9e/c0/3c9b38c7332dfb1523a079fa3c5ea701a5ea82997d12d057c4002b6a0c75/cohere-7.0.3.tar.gz", hash = "sha256:f74c6be98ee5d0d1310c3892171def2f184d5a9b7ab81d906407ffc7a5e62adc", size = 208811, upload-time = "2026-06-01T21:52:38.093Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d8/b6/ff393408f64091d07ce64a8baeb70aee8640225997e7f5b123fcb19de909/cohere-7.0.0-py3-none-any.whl", hash = "sha256:de565f04f805b909bd1040b70fad916dc7699c977c2f532289097bf3491d6cc3", size = 351770, upload-time = "2026-05-22T18:48:46.409Z" },
+    { url = "https://files.pythonhosted.org/packages/a1/0d/f543e349da10761c498e3a773e728c2d6b1aeb47195f2f09c6145452d51c/cohere-7.0.3-py3-none-any.whl", hash = "sha256:c880a45c4cd670d5e7c9297de122005f21e2d9624fda9314cb3e4e0406bc9ec5", size = 351965, upload-time = "2026-06-01T21:52:36.429Z" },
 ]
 
 [[package]]
@@ -792,7 +792,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "bm25s", specifier = ">=0.2.0" },
-    { name = "cohere", specifier = ">=5.0.0" },
+    { name = "cohere", specifier = ">=7.0.3" },
     { name = "duckdb", specifier = ">=1.0.0" },
     { name = "fastapi", specifier = ">=0.136.3" },
     { name = "lancedb", specifier = ">=0.30.2" },
