@@ -10,7 +10,7 @@ dependencies = [
   "fastapi>=0.136.3",
   "lancedb>=0.30.2",
   "north",
-  "pdfplumber>=0.11.0",
+  "pdfplumber>=0.11.10",
   "pydantic>=2.6.0",
   "pymupdf>=1.27.2.3",
   "python-dotenv>=1.0.0",
